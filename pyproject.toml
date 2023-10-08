@@ -1,0 +1,28 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+
+[project]
+name = "heavylight"
+version = "1.0.4"
+authors = [
+  { name="Lewis Fogden", email="lewisfogden@gmail.com" },
+]
+description = "Heavylight Actuarial Modelling Framework"
+readme = "README.md"
+requires-python = ">=3.8"
+
+dependencies = [
+    "pandas>=1.2",
+]
+
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/lewisfogden/heavylight/"
+"Bug Tracker" = "https://github.com/lewisfogden/heavylight/issues"
