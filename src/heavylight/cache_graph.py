@@ -2,6 +2,7 @@ from typing import Callable
 
 from collections import defaultdict
 from dataclasses import dataclass
+from functools import wraps
 from typing import Any, Callable, Tuple, Union, FrozenSet
 
 @dataclass(frozen=True)
@@ -45,6 +46,7 @@ class CacheGraph:
 
     def __call__(self, storage_func: Union[Callable, None] = None):
         def decorator_factory(func):
+            @wraps(func)
             def wrapper(*args, **kwargs):
                 frozen_kwargs = frozenset(kwargs.items())
                 function_call = FunctionCall(func.__name__, args, frozen_kwargs)
@@ -91,7 +93,7 @@ class _Cache:
             self.cache[(key, frozenset())] = value
 
     def __repr__(self):
-        return f"<Cache Function: {self._func.__name__} Size: {len(self.cache)}>"
+        return f"<Cache Function: {self._func.__name__}, Size: {len(self.cache)}>"
     
     def __call__(self, *args: Any, **kwds: Any) -> Any:
         return self._func(*args, **kwds)
