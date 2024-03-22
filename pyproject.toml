@@ -24,6 +24,7 @@ dev = [
     "pytest==7.4.3",
     "pytest-cov",
     "pytest-timeout",
+    "numpy"
 ]
 
 [tool.pytest.ini_options]

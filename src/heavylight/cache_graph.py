@@ -33,6 +33,8 @@ class CacheGraph:
         self.last_needed_by: dict[FunctionCall, FunctionCall] = {}
         # can_clear[caller] = [callee1, callee2, ...] means that caller can clear the cache of callee1 and callee2
         self.can_clear: dict[FunctionCall, list[FunctionCall]] = defaultdict(list)
+        self.all_calls: set[FunctionCall] = set()
+        self.cache_misses: defaultdict[FunctionCall, int] = defaultdict(int)
 
     def check_if_cached(self, function_call: FunctionCall):
         name_in_cache = function_call.func_name in self.caches
@@ -42,6 +44,9 @@ class CacheGraph:
         self.can_clear = defaultdict(list)
         for callee, caller in self.last_needed_by.items():
             self.can_clear[caller].append(callee)
+        uncleared_calls = self.all_calls - set(self.last_needed_by.keys())
+        for call in uncleared_calls:
+            self.can_clear[call].append(call)
 
     def optimize_and_reset(self):
         self.optimize()
@@ -59,13 +64,16 @@ class CacheGraph:
                     self.graph[self.stack[-1]].add(function_call)
                     self.last_needed_by[function_call] = self.stack[-1]
                 if not self.check_if_cached(function_call):
+                    self.all_calls.add(function_call)
+                    self.cache_misses[function_call] += 1
                     self.stack.append(function_call)
                     result = func(*args, **kwargs)
+                    self.caches[func.__name__][(args, frozen_kwargs)] = result
                     for clearable_call in self.can_clear[function_call]:
                         del self.caches[clearable_call.func_name][(clearable_call.args, clearable_call.kwargs)]
-                    self.caches[func.__name__][(args, frozen_kwargs)] = result
-                    self._store_result(storage_func, func, args, kwargs, result)
                     self.stack.pop()
+                    self._store_result(storage_func, func, args, kwargs, result)
+                    return result
                 return self.caches[func.__name__][(args, frozen_kwargs)]
             decorator = _Cache(self, wrapper)
             return decorator
