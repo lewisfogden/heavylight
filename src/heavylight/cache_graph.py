@@ -20,10 +20,17 @@ class FunctionCall:
 ArgsHash = Tuple[Tuple, frozenset]
 
 class CacheGraph:
+    """
+    The cache graph maintains data structures necessary for caching and memory-optimizing collections of recursive functions.
+    It is applied to functions as a decorator
+    """
     def __init__(self):
         self.reset()
 
     def reset(self):
+        """
+        Clear all internal state of the cache graph.
+        """
         self.stack: list[FunctionCall] = [] # what function is currently being called
         self.caches: defaultdict[str, dict[ArgsHash, Any]] = defaultdict(dict) # Results of function calls
         self.graph: defaultdict[FunctionCall, set[FunctionCall]] = defaultdict(set) # Call graph, graph[caller] = [callee1, callee2, ...]
