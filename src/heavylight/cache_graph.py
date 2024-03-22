@@ -1,5 +1,4 @@
 from typing import Callable
-
 from collections import defaultdict
 from dataclasses import dataclass
 from functools import wraps
@@ -44,8 +43,14 @@ class CacheGraph:
         for callee, caller in self.last_needed_by.items():
             self.can_clear[caller].append(callee)
 
-    def __call__(self, storage_func: Union[Callable, None] = None):
-        def decorator_factory(func):
+    def optimize_and_reset(self):
+        self.optimize()
+        can_clear = self.can_clear
+        self.reset()
+        self.can_clear = can_clear
+
+    def __call__(self, storage_func: Union[Callable[[int], Any], None] = None):
+        def custom_cache_decorator(func):
             @wraps(func)
             def wrapper(*args, **kwargs):
                 frozen_kwargs = frozenset(kwargs.items())
@@ -64,7 +69,7 @@ class CacheGraph:
                 return self.caches[func.__name__][(args, frozen_kwargs)]
             decorator = _Cache(self, wrapper)
             return decorator
-        return decorator_factory
+        return custom_cache_decorator
     
     def _store_result(self, storage_func: Union[Callable, None], func: Callable, args: tuple, kwargs: dict, raw_result: Any):
         """We might want to store an intermediate result"""

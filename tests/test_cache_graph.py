@@ -34,18 +34,30 @@ def test_cache_dunders():
     fib(5)
     assert repr(fib) == "<Cache Function: fib, Size: 6>"
     assert len(fib.cache) == 6
-    assert fib.cache[((5,), frozenset())] == 5
+    test_key = ((5,), frozenset())
+    assert fib.cache[test_key] == cg.caches['fib'][test_key] == 5
     fib[5] = 10
-    assert fib.cache[((5,), frozenset())] == 10
+    assert fib.cache[test_key] == cg.caches['fib'][test_key] == 10
     fib[(5,)] = 100
-    assert fib.cache[((5,), frozenset())] == 100
+    assert fib.cache[test_key] == cg.caches['fib'][test_key] == 100
 
 @pytest.mark.timeout(4)
-def test_cache_graph_memoization_speeedup():
+def test_cache_graph_memory_optimization():
     cg = CacheGraph()
+
     @cg()
-    def fib(n):
-        if n < 2:
+    def fib(n: int):
+        if n <= 1:
             return n
-        return fib(n - 1) + fib(n - 2)
-    fib(200)
+        return fib(n-1) + fib(n-2)
+
+    def get_max_memory_fib(n: int, cg: CacheGraph):
+        max_memory_size = 0
+        for i in range(n+1):
+            fib(i)
+            max_memory_size = max(max_memory_size, cg.size())
+        return max_memory_size
+
+    assert get_max_memory_fib(200, cg) == 201
+    cg.optimize_and_reset()
+    assert get_max_memory_fib(200, cg) == 2
