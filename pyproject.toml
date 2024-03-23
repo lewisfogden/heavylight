@@ -26,6 +26,11 @@ dev = [
     "pytest-timeout",
     "numpy"
 ]
+docs = [
+    "mkdocs",
+    "mkdocstrings[python]",
+    "mkdocs-material",
+]
 
 [tool.pytest.ini_options]
 addopts = [
