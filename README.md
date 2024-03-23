@@ -1,3 +1,5 @@
+[![codecov](https://codecov.io/gh/actuarialopensource/heavylight/graph/badge.svg?token=40623XGSZS)](https://codecov.io/gh/actuarialopensource/heavylight)
+
 # heavylight
 
 A lightweight actuarial modelling framework for Python
