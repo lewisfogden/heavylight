@@ -81,7 +81,11 @@ class Model:
     
     def ToDataFrame(self):
         """Return a pandas dataframe of all single parameter timestep results."""
-        return pd.DataFrame(self.StoredResults())
+        df = pd.DataFrame(self.StoredResults())
+        # if t is in the dataframe, move it to first position
+        if "t" in df.columns:
+            df.insert(0, "t", df.pop("t"))
+        return df
 
 
 def check_if_single_parameter_t(func: Callable):

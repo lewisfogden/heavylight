@@ -1,14 +1,12 @@
 import numpy as np
 from heavylight import Model
 from typing import Union, Callable
-import numpy as np
 import pytest
 
 class SimpleModel(Model):
-    """This class has some hard coded"""
 
     def __init__(self, initial_pols_if: np.ndarray, storage_function: Union[Callable, None] = None, mortality_rate = .01):
-        super().__init__(storage_function)
+        super().__init__(storage_function=storage_function)
         self.initial_pols_if = initial_pols_if
         self.mortality_rate = mortality_rate
 
@@ -35,7 +33,7 @@ class SimpleModel(Model):
             return self.v(t - 1) / (1 + self.forward_rate(t))
     
     def forward_rate(self, t):
-        return np.float64(0.04) # make np.float64 to call .nbytes later
+        return 0.04
     
     def pv_cashflow(self, t):
         """present value of the cashflow occuring at time t"""
