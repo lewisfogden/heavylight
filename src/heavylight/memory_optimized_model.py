@@ -1,11 +1,11 @@
 from inspect import getmembers, signature
 from typing import Callable, List, Union
 from types import MethodType
-from heavylight.cache_graph import CacheGraph, _Cache
+from heavylight.memory_optimized_cache import CacheGraph, _Cache
 import pandas as pd
 
 
-class Model:
+class LightModel:
     """Base class to subclass from for recursive actuarial models.
 
     Inheriting from this class causes functions starting with a lowercase letter to be cached.

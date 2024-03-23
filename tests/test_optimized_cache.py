@@ -1,4 +1,4 @@
-from heavylight.cache_graph import FunctionCall, CacheGraph
+from heavylight.memory_optimized_cache import FunctionCall, CacheGraph
 import pytest
 
 def test_function_call():

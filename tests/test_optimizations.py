@@ -1,10 +1,10 @@
 import numpy as np
-from heavylight import Model
+from heavylight import LightModel
 from typing import Union, Callable
 import numpy as np
 import pytest
 
-class SimpleModel(Model):
+class SimpleModel(LightModel):
     """This class has some hard coded"""
 
     def __init__(self, initial_pols_if: np.ndarray, storage_function: Union[Callable, None] = None, mortality_rate = .01):
@@ -39,7 +39,7 @@ class SimpleModel(Model):
     def pv_cashflow(self, t):
         return self.cashflow(t) * self.v(t)
 
-def calculate_cache_graph_size(model: Model):
+def calculate_cache_graph_size(model: LightModel):
     cg = model.cache_graph
     return sum(val.nbytes for cache in cg.caches.values() for val in cache.values())
 

@@ -1,2 +1,2 @@
-from .heavylight import Model
-from .cache_graph import CacheGraph
+from .memory_optimized_model import LightModel
+from .memory_optimized_cache import CacheGraph
