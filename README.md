@@ -4,7 +4,7 @@ A lightweight actuarial modelling framework for Python
 
 - single script
 - installation optional: package with your models.
-- only depends on `pandas`
+- only depends on `pandas` and `numpy`
 
 ## Components
 
@@ -20,7 +20,7 @@ Model:
 Table:
 
 - simple long format table object
-- type information encoded via `|int`, `|float`, `|str` header suffixes
+- type information encoded via `|int`, `|int_bound`, `|band`, `|str` header suffixes
 
 
 ## Usage

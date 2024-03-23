@@ -4,15 +4,11 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-jupyterlab = "*"
-pandas = "*"
-numpy = "*"
+heavylight = {file = ".", editable = true}
+ipykernel = "*"
 seaborn = "*"
-matplotlib = "*"
-solara = "*"
-heavylight = "*"
 
 [dev-packages]
 
 [requires]
-python_version = "3.11"
+python_version = "3.12"
