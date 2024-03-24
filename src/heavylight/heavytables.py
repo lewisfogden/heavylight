@@ -1,6 +1,7 @@
 # Heavytables
 # Provides a high performance multiple-index -> single index table
 
+import itertools
 import pandas as pd
 import numpy as np
 
@@ -74,7 +75,8 @@ class IntKeyTable:
         self.values = self.df[self.value_col].values
 
         expected_rows = np.prod(self.ranges)
-        assert expected_rows == len(self.values)
+        if expected_rows != len(self.values):
+            raise ValueError(f'Input `df` is not rectangular, {expected_rows=} != {len(self.values)=}')
 
     def get_index(self, *keys):
         index = 0
@@ -159,6 +161,21 @@ class Table:
     def __repr__(self):
         # TODO: return a nice representation of the table, e.g. head/keys etc.
         return repr(self.df)
+    
+    @staticmethod
+    def rectify(df: pd.DataFrame) -> pd.DataFrame:
+        """Convert a triangular (incomplete) dataframe into a valid rectangular dataframe"""
+        key_cols = list(df.columns[:-1])
+        df_unique_keys = [list(df[col_name].unique()) for col_name in key_cols]
+        # TODO: check that any |int and |int_bound keys form a range. (e.g. use min and max, and then arange(+1))
+
+        # construct a dataframe from the cartesian product of these
+        df_rect_keys = pd.DataFrame(itertools.product(*df_unique_keys), columns=key_cols)
+
+        # fill out the table
+        df_rect = df_rect_keys.merge(right=df, how='left', on = key_cols)
+
+        return df_rect
 
     @classmethod
     def read_excel(cls, spreadsheet_path, sheet_name):
