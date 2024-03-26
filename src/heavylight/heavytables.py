@@ -163,11 +163,23 @@ class Table:
         return repr(self.df)
     
     @staticmethod
-    def rectify(df: pd.DataFrame) -> pd.DataFrame:
-        """Convert a triangular (incomplete) dataframe into a valid rectangular dataframe"""
+    def rectify(df: pd.DataFrame, fill=np.nan) -> pd.DataFrame:
+        """Convert a triangular (incomplete) dataframe into a valid rectangular dataframe
+        
+        any missing points will be filled with `fill`, default: np.nan
+        """
         key_cols = list(df.columns[:-1])
-        df_unique_keys = [list(df[col_name].unique()) for col_name in key_cols]
-        # TODO: check that any |int and |int_bound keys form a range. (e.g. use min and max, and then arange(+1))
+        val_col = df.columns[-1]
+
+        df_unique_keys = []
+        for col_name in key_cols:
+            if col_name.endswith('|int') or col_name.endswith('|int_bound'):
+                # make sure all integers are covered (no gaps)
+                full_keys = list(range(df[col_name].min(), df[col_name].max() + 1))
+            else:
+                # otherwise, grab the unique values.
+                full_keys = list(df[col_name].unique())
+            df_unique_keys.append(full_keys)
 
         # construct a dataframe from the cartesian product of these
         df_rect_keys = pd.DataFrame(itertools.product(*df_unique_keys), columns=key_cols)
@@ -175,6 +187,8 @@ class Table:
         # fill out the table
         df_rect = df_rect_keys.merge(right=df, how='left', on = key_cols)
 
+        # replace gaps with the fill value.
+        df_rect[val_col] = df_rect[val_col] .fillna(fill)
         return df_rect
 
     @classmethod
