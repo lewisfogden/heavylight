@@ -1,3 +1,4 @@
 from .heavylight import Model
 from .heavytables import Table
-from .heavylight import Table as PDTable # older table format.
+from .memory_optimized_model import LightModel
+from .memory_optimized_cache import CacheGraph
