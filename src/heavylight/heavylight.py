@@ -3,43 +3,6 @@ import types
 from inspect import signature, getmembers
 import pandas as pd
 
-class Table:
-    """A Table has one or more keys, and a single column of values"""
-
-    def __init__(self, series):
-        """Initialise a table with a series - for multiple keys use a multikey index"""
-        self.series = series
-
-    def __getitem__(self, key):
-        return self.series.at[key]
-    
-    def __call__(self, key):
-        return self.series.at[key]
-    
-    def values(self, key):
-        return self.series.loc[key].values
-
-    @staticmethod
-    def read_csv(filename, sep=",", type_identifier = "|"):
-        """Read in a table from a csv file, type encoding is via the header:
-        
-        <keyname1>|<type1>,<keyname2>|<type2>....<value>|<typeN>
-        where type is one of "str", "int", "float"
-        """
-        column_types = {"str": str, "int": int, "float": float}
-        with open(filename, "r") as csv_file:
-            header = next(csv_file).strip("\n").split(sep)
-        tid = type_identifier
-        header_mapper_str = {item:item.split(tid)[1] for item in header}
-        header_mapper_types = {col:column_types[val] for col, val in header_mapper_str.items()}
-        df = pd.read_csv(filename, sep=sep, dtype=header_mapper_types)
-        # strip `tid` from column names
-        df.columns = [col.split("|")[0] for col in df.columns]
-        df.set_index(list(df.columns[:-1]), inplace=True)
-        series = df[df.columns[0]]
-        return Table(series=series)
-
-
 class _Cache:
     """Cache provides controllable memoization for model methods"""
 
