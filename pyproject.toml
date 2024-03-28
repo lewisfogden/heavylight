@@ -7,7 +7,7 @@ src-dir = "src"
 
 [project]
 name = "heavylight"
-version = "1.0.4"
+version = "1.0.5"
 authors = [
   { name="Lewis Fogden", email="lewisfogden@gmail.com" },
 ]

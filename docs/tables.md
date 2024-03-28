@@ -26,7 +26,4 @@ print(tab[20])   # prints(0.20)
 rng = np.random.default_rng(seed=42)   # set up random number generator
 ages = rng.integers(low=18, high=65, size=100_000, endpoint=True)   # sample 100k ages
 vals = tab[ages]    # query the table and store values
-``` 
-
-
 ```

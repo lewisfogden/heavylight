@@ -52,4 +52,5 @@ extra_css:
 
 nav:
     - 'index.md'
+    - 'tables.md'
 
