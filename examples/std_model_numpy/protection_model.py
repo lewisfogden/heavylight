@@ -1,4 +1,5 @@
 import heavylight
+import numpy as np
 
 class TermAssurance(heavylight.Model):
     def t(self, t):
@@ -11,32 +12,38 @@ class TermAssurance(heavylight.Model):
         """monthly premium"""
         return self.data["annual_premium"] / 12
     
+    def sum_assured(self, t):
+        return np.where(
+            self.data["shape"] == 'level',
+            self.data["sum_assured"],
+            self.decreasing_sa(t)
+        )
+
+    def decreasing_sa(self, t):
+        """sum assured if decreasing, tracking mortgage - interest rate of 7% assumed (could be parameterised)"""
+        r = (1 + 0.07)**(1/12) - 1
+        S = self.data["sum_assured"]
+        T = self.data["term_y"] * 12
+        outstanding = S * ((1 + r)**T - (1 + r)**t)/((1 + r)**T - 1)
+        return outstanding
+
     def claim_pp(self, t):
-        if t == 0:
-            return self.data["sum_assured"]
-        elif t > self.data["term_y"] * 12:
-            return 0
-        elif self.data["shape"] == "level":
-            return self.data["sum_assured"]
-        elif self.data["shape"] == "decreasing":
-            r = (1 + 0.07)**(1/12)-1
-            S = self.data["sum_assured"]
-            T = self.data["term_y"] * 12
-            outstanding = S * ((1 + r)**T - (1 + r)**t)/((1 + r)**T - 1)
-            return outstanding
-        else:
-            raise ValueError("Parameter 'shape' must be 'level' or 'decreasing'")
-    
+        return np.where(
+            t > self.data["term_y"] * 12,
+            0,
+            self.sum_assured(t)
+        )
+
     def inflation_factor(self, t):
         """annual"""
-        return (1 + self.basis["cost_inflation_pa"])**(t//12)
+        return (1 + self.basis["cost_inflation_pa"])**(t // 12)
 
     def v(self, t):
         """present value of 1 discounted from time t to time 0"""
         if t == 0:
             return 1
         else:
-            return self.v(t - 1) / (1 +self.basis["forward_rates"][t])
+            return self.v(t - 1) / (1 + self.basis["forward_rates"][t])
 
     def premiums(self, t):
         return self.premium_pp(t) * self.num_pols_if(t)
@@ -46,7 +53,7 @@ class TermAssurance(heavylight.Model):
     
     def duration(self, t):
         """duration in force in years"""
-        return t//12
+        return t // 12
     
     def claims(self, t):
         return self.claim_pp(t) * self.num_deaths(t)
@@ -58,7 +65,7 @@ class TermAssurance(heavylight.Model):
         if t == 0:
             return self.basis["initial_expense"]
         else:
-            return self.num_pols_if(t) * self.basis["expense_pp"]/12 * self.inflation_factor(t)
+            return self.num_pols_if(t) * self.basis["expense_pp"] / 12 * self.inflation_factor(t)
       
     def pv_expenses(self, t):
         return self.v(t) * self.expenses(t)
@@ -66,32 +73,34 @@ class TermAssurance(heavylight.Model):
     def num_pols_if(self, t):
         """number of policies in force"""
         if t == 0:
-            return self.data["init_pols_if"]
-        elif t > self.data["term_y"] * 12:
-            return 0
+            return self.data["init_pols_if"]    
+        # if statements need to be vectorised, using np.where (same logic as excel IF())
         else:
-            return self.num_pols_if(t-1) - self.num_exits(t-1) - self.num_deaths(t-1)
+            return np.where(
+                t > self.data["term_y"] * 12,
+                0,
+                self.num_pols_if(t - 1) - self.num_exits(t - 1) - self.num_deaths(t - 1)
+            )
     
     def num_exits(self, t):
         """exits occurring at time t"""
-        return self.num_pols_if(t) * (1-(1 - self.basis["lapse_rate_pa"])**(1/12))
+        return self.num_pols_if(t) * (1 - (1 - self.basis["lapse_rate_pa"])**(1/12))
       
     def num_deaths(self, t):
         """deaths occurring at time t"""
         return self.num_pols_if(t) * self.q_x_12(t)
     
     def age(self, t):
-        return self.data["age_at_entry"] + t//12
-    
+        return self.data["age_at_entry"] + t // 12
     
     def q_x_12(self, t):
-        return 1-(1- self.q_x_rated(t))**(1/12)
+        return 1 - (1 - self.q_x_rated(t))**(1/12)
     
     def q_x(self, t):
         return self.basis["mort_table"][self.age(t), self.duration(t), self.data["smoker_status"]]
             
     def q_x_rated(self, t):
-        return max(0, min(1 , self.q_x(t) * (1 + self.data["extra_mortality"]) ) )
+        return np.clip(self.q_x(t) * (1 + self.data["extra_mortality"]), 0, 1)
         
     def commission(self, t):
         return 0
