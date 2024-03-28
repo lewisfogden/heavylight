@@ -12,6 +12,18 @@ class IntegerLookup:
     def get(self, values):
         return values
 
+class IntegerLookupSafe:
+    """An integer lookup that checks bounds"""
+    def __init__(self, lower, upper):
+        self.lower = lower
+        self.upper = upper
+    
+    def get(self, values):
+        # TODO: replace np.all with np.any for faster failing (probably doesn't improve performance)
+        if not np.all((self.lower <= values) & (values <= self.upper)):
+            raise KeyError(f'values are not between table minimum ({self.lower}) and maximum ({self.upper})')
+        return values
+
 class BoundIntLookup:
     def __init__(self, lower, upper):
         self.lower = int(lower)
@@ -96,9 +108,13 @@ class Table:
     """
     col_types = "int", "int_bound", "str", "band", "float"
 
-    def __init__(self, df:pd.DataFrame):
+    def __init__(self, df:pd.DataFrame, rectify=False, safe=True):
         """Initialise a table from a dataframe.
         
+        parameters:
+         - `rectify`: force table to be rectangular (default False)
+         - `safe`: validates that integers are between bounds (default True)
+
         Tables should be in long format:
          - the final column containing the values to look up
          - all other columns contain keys to lookup
@@ -112,6 +128,9 @@ class Table:
         `|band`: key is numeric and treated as the upper bound on a lookup.
         `|float`: not currently available due to floating point equality, use int or band depending on use case.
         """
+        if rectify:
+            df = Table.rectify(df)
+
         key_cols = list(df.columns[:-1])
         df = df.sort_values(key_cols[::-1]) # sort by reverse order
 
@@ -122,7 +141,12 @@ class Table:
         for col in key_cols:
             col_type = col.split("|")[1] # "int", "str" etc
             if col_type == "int":
-                self.mappers.append(IntegerLookup()) # just so we have .get (a bit inefficient?)
+                if safe:
+                    lower = df[col].min()
+                    upper = df[col].max()                    
+                    self.mappers.append(IntegerLookupSafe(lower=lower, upper=upper))
+                else:
+                    self.mappers.append(IntegerLookup())
             elif col_type == "int_bound":
                 # bound integer forces values to be between the lowest and highest value in the table, for example maximum durations in mortality tables.
                 lower = df[col].min()
@@ -160,7 +184,7 @@ class Table:
 
     def __repr__(self):
         # TODO: return a nice representation of the table, e.g. head/keys etc.
-        return repr(self.df)
+        return self.df.__repr__()
     
     @staticmethod
     def rectify(df: pd.DataFrame, fill=np.nan) -> pd.DataFrame:
