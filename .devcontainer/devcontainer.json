@@ -16,7 +16,7 @@
 	// "forwardPorts": [],
 
 	// Use 'postCreateCommand' to pip install the editable
-	// "postCreateCommand": "pip install -e .[dev]",
+	"postCreateCommand": "pip install -e .[dev]",
 	"customizations": {
 		"vscode": {
 			"extensions": [
