@@ -5,7 +5,6 @@ import numpy as np
 import pytest
 
 class SimpleModel(LightModel):
-    """This class has some hard coded"""
 
     def __init__(self, initial_pols_if: np.ndarray, storage_function: Union[Callable, None] = None, mortality_rate = .01):
         super().__init__(storage_function=storage_function)
@@ -64,3 +63,14 @@ def test_memory_savings():
     assert get_memory_savings_ratio(model, 100) < .01
     assert sum(model.cache_graph.cache_misses.values()) > 0 # verify that misses are being tracked
     assert all(misses == 1 for misses in model.cache_graph.cache_misses.values())
+
+def test_cache_misses():
+    sm = SimpleModel(np.linspace(.1, 1, 10), np.sum)
+    sm.RunModel(5)
+    assert len(sm.cache_graph.cache_misses.values()) > 0
+    assert all(x == 1 for x in sm.cache_graph.cache_misses.values())
+    sm.OptimizeMemoryAndReset()
+    assert len(sm.cache_graph.cache_misses.values()) == 0
+    sm.RunModel(5)
+    assert len(sm.cache_graph.cache_misses.values()) > 0
+    assert all(x == 1 for x in sm.cache_graph.cache_misses.values())

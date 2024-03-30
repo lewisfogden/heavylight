@@ -1,7 +1,7 @@
 from inspect import getmembers, signature
 from typing import Callable, List, Union
 from types import MethodType
-from heavylight.memory_optimized_cache import CacheGraph, _Cache
+from heavylight.memory_optimized_cache import CacheGraph, _Cache, FunctionCall
 import pandas as pd
 
 
@@ -54,7 +54,9 @@ class LightModel:
         """
         for t in range(proj_len+1):
             for func in self._single_param_timestep_funcs:
-                func(t)
+                # We avoid recalling any functions that have already been cached, resolves issue #15 lewisfogden/heavylight
+                if not FunctionCall(func._func.__name__, (t,), frozenset()) in self.cache_graph.all_calls:
+                    func(t)
 
     def ResetCache(self):
         """Reset the cache, useful if you want to run the model again with different parameters."""
