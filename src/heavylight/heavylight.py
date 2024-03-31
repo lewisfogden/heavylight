@@ -42,6 +42,7 @@ class _Cache:
         """return the cache as a pandas dataframe"""
         df = pd.DataFrame(data=self.keys, columns=self.param_names)
         df[self.__name__] = self.values
+        # df = df.set_index(list(self.param_names))  # TODO: decide if keys should be indexes or not.
         return df
 
 class Model:
@@ -142,11 +143,11 @@ class Model:
         for name, func in self._funcs.items():
             print(f"{name}: {func}")
         
-    def ToDataFrame(self):
+    def ToDataFrame(self, param = 't'):
         """return a pandas dataframe of all single parameter columns"""
         df = pd.DataFrame()
         for func in self._funcs:
-            if self._funcs[func].has_one_param:
+            if self._funcs[func].has_one_param and self._funcs[func].param_names[0] == param:
                 # TODO: should this only extract parameters `t`?
                 df[func] = pd.Series(self._funcs[func].values)
 
@@ -154,3 +155,7 @@ class Model:
         if "t" in df.columns:
             df.insert(0, "t", df.pop("t"))
         return df
+    
+    @property
+    def df(self):
+        return self.ToDataFrame()
