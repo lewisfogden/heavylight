@@ -47,13 +47,13 @@ class SimpleModel(LightModel):
 def test_forward_rate():
     sm = SimpleModel(np.linspace(.1, 1, 10), np.sum)
     sm.forward_rate(0)
-    assert sm.forward_rate.cache[((0,), frozenset())] == .04
+    assert sm.forward_rate._cache[((0,), frozenset())] == .04
     assert len(sm.StoredResults()) == 1
     assert len(sm.StoredResults()['forward_rate']) == 1
     assert sm.StoredResults()['forward_rate'][0] == .04
 
     sm.forward_rate(5)
-    assert len(sm.forward_rate.cache) == 2
+    assert len(sm.forward_rate._cache) == 2
 
 
 def test_timestep_functions():
@@ -68,15 +68,15 @@ def test_timestep_functions():
 @pytest.mark.timeout(4)
 def test_caching():
     sm = SimpleModel(np.linspace(.1, 1, 10), np.sum)
-    assert len(sm.num_pols_if.cache) == 0
+    assert len(sm.num_pols_if._cache) == 0
     sm.RunModel(200)
-    assert len(sm.num_pols_if.cache) == 201
+    assert len(sm.num_pols_if._cache) == 201
     assert type(sm.StoredResults()['num_pols_if'][200]) == np.float64
     # fib did not get called because it is not single parameter time function
-    assert len(sm.fib.cache) == 0
+    assert len(sm.fib._cache) == 0
     sm.fib(200, 1.1)
     # but it is still cached
-    assert len(sm.fib.cache) == 201
+    assert len(sm.fib._cache) == 201
 
 def test_dataframe():
     sm = SimpleModel(np.linspace(.1, 1, 10), np.sum)

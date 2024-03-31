@@ -32,7 +32,7 @@ class CacheGraph:
         Clear all internal state of the cache graph.
         """
         self.stack: list[FunctionCall] = [] # what function is currently being called
-        self.caches: defaultdict[str, dict[ArgsHash, Any]] = defaultdict(dict) # Results of function calls
+        self._caches: defaultdict[str, dict[ArgsHash, Any]] = defaultdict(dict) # Results of function calls, ugly keys like ((1, 2), frozenset([('a', 1)]))
         self.graph: defaultdict[FunctionCall, set[FunctionCall]] = defaultdict(set) # Call graph, graph[caller] = [callee1, callee2, ...]
         # Typically aggregated results for a function at a timestep.
         self.stored_results: defaultdict[str, dict[int, Any]] = defaultdict(dict)
@@ -44,8 +44,8 @@ class CacheGraph:
         self.cache_misses: defaultdict[FunctionCall, int] = defaultdict(int)
 
     def check_if_cached(self, function_call: FunctionCall):
-        name_in_cache = function_call.func_name in self.caches
-        return name_in_cache and (function_call.args, function_call.kwargs) in self.caches[function_call.func_name]
+        name_in_cache = function_call.func_name in self._caches
+        return name_in_cache and (function_call.args, function_call.kwargs) in self._caches[function_call.func_name]
     
     def optimize(self):
         self.can_clear = defaultdict(list)
@@ -75,13 +75,13 @@ class CacheGraph:
                     self.cache_misses[function_call] += 1
                     self.stack.append(function_call)
                     result = func(*args, **kwargs)
-                    self.caches[func.__name__][(args, frozen_kwargs)] = result
+                    self._caches[func.__name__][(args, frozen_kwargs)] = result
                     for clearable_call in self.can_clear[function_call]:
-                        del self.caches[clearable_call.func_name][(clearable_call.args, clearable_call.kwargs)]
+                        del self._caches[clearable_call.func_name][(clearable_call.args, clearable_call.kwargs)]
                     self.stack.pop()
                     self._store_result(storage_func, func, args, kwargs, result)
                     return result
-                return self.caches[func.__name__][(args, frozen_kwargs)]
+                return self._caches[func.__name__][(args, frozen_kwargs)]
             decorator = _Cache(self, wrapper)
             return decorator
         return custom_cache_decorator
@@ -99,21 +99,46 @@ class CacheGraph:
         self.stored_results[func.__name__][timestep] = stored_result
 
     def size(self):
-        return sum(len(cache) for cache in self.caches.values())
+        return sum(len(cache) for cache in self._caches.values())
+    
+    @property
+    def caches(self):
+        """
+        The CacheGraph._caches have ugly keys like `((1,), frozenset())` or `((1, 2), frozenset([('a', 1)]))`.
+        In the former case, a key of `1` is more readable, but in the latter case, we cannot clean this up.
+        Use a pretty key.
+        """
+        caches = {func_name: {get_pretty_key(k): v for k, v in cache.items()} for func_name, cache in self._caches.items()}
+        return caches
 
 class _Cache:
     def __init__(self, cache_graph: CacheGraph, func: Callable):
-        self.cache = cache_graph.caches[func.__name__]
+        self._cache = cache_graph._caches[func.__name__]
         self._func = func
+
+    @property
+    def cache(self):
+        """
+        The _Cache._caches have ugly keys, use a pretty key. Same as in CacheGraph.
+        """
+        return {get_pretty_key(k): v for k, v in self._cache.items()}
 
     def __setitem__(self, key, value):
         if isinstance(key, int):
-            self.cache[((key,), frozenset())] = value
+            self._cache[((key,), frozenset())] = value
         else:
-            self.cache[(key, frozenset())] = value
+            self._cache[(key, frozenset())] = value
 
     def __repr__(self):
-        return f"<Cache Function: {self._func.__name__}, Size: {len(self.cache)}>"
+        return f"<Cache Function: {self._func.__name__}, Size: {len(self._cache)}>"
     
     def __call__(self, *args: Any, **kwds: Any) -> Any:
         return self._func(*args, **kwds)
+    
+def get_pretty_key(key: ArgsHash):
+    if len(key[0]) == 1 and len(key[1]) == 0:
+        return key[0][0]
+    elif len(key[1]) == 0:
+        return key[0]
+    else:
+        return key
