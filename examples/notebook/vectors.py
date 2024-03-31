@@ -5,6 +5,8 @@ import numpy as np
 
 # A Vectorised Actuarial Contingency Model
 
+# This code is out of date/unmaintained but includes some examples of usage.
+
 # %%
 class Life(heavylight.Model):
     time_step = 1/12
@@ -29,10 +31,10 @@ class Life(heavylight.Model):
         if t == 0:
             return self.data["initial_age"] # floating point
         else:
-            return self.age(t-1) + Life.time_step
+            return self.age(t - 1) + Life.time_step
     
     def age_rounded(self, t):
-        return np.round(self.age(t))
+        return np.round(self.age(t)).astype(int)
     
     def q_x_m(self, t):
         """monthly mortality rate"""
@@ -40,7 +42,7 @@ class Life(heavylight.Model):
     
     def q_x(self, t):
         """annual mortality rate"""
-        return self.basis["mortality"].values(self.age_rounded(t))
+        return self.basis["mortality"][self.age_rounded(t)]
     
     def premium(self, t):
         #print(self.data["premium"])
@@ -60,10 +62,7 @@ class Life(heavylight.Model):
 
 
 # %%
-mortality = heavylight.Table.from_csv("sample_q_x_table.csv")
-
-# %%
-mortality.series.loc[np.array([20, 21])]
+mortality = heavylight.Table.read_csv("sample_q_x_table.csv")
 
 # %%
 basis = {"mortality": mortality}
@@ -77,7 +76,7 @@ def make_random_data(num_pols):
     return_data["data_count"] = num_pols
     return_data["initial_policies"] = np.ones(num_pols)
     return_data["mp_num"] = np.arange(num_pols)
-    return_data["initial_age"] = rng.uniform(low=20.0, high=21.0, size=num_pols)
+    return_data["initial_age"] = rng.uniform(low=20.0, high=25.0, size=num_pols)
     return_data["premium"] = rng.beta(a=2, b=5, size=num_pols) * 100 + 50
     return_data["sum_assured"] = return_data["premium"] * 100 # rng.uniform(low=10.0, high=20, size=num_pols)
     return return_data
@@ -96,16 +95,9 @@ data = {
 
 # %%
 data = make_random_data(1000)
-model = Life(data=data, basis=basis) #, do_run=True, proj_len = 5)
-
-# %%
-model.RunModel(proj_len=120, verbose=True)
-#df = model.ToDataFrame()
+model = Life(data=data, basis=basis, proj_len=10) #, do_run=True, proj_len = 5)
 
 
-
-#for t in range(10):
-#    print(t, model.net_cashflow(t))
 
 # %%
 def expand(model, variable):
@@ -133,7 +125,7 @@ def dfize(model):
     columns = {}
     for func in model._funcs:
         func_values = getattr(model,func).values
-        if isinstance(list(func_values.values())[0], np.ndarray):
+        if isinstance(func_values.values[0], np.ndarray):
             # multi-index
             temp_df = pd.DataFrame(func_values).T.stack()
             columns[func] = temp_df

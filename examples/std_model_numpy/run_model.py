@@ -22,8 +22,7 @@ def solve_prot_premium(model: heavylight.Model, data: dict, basis: dict):
     data.update(pricing_entries)
 
     proj_len = int(max(data["term_y"]) * 12 + 1)
-    print(proj_len, type(proj_len))
-    model_inst = model(data=data, basis=basis, proj_len=proj_len, do_run=True)
+    model_inst = model(data=data, basis=basis, proj_len=proj_len)
             
     # extract npvs
     npv_claims = model_inst.pv_claims.sum()

@@ -148,7 +148,6 @@ class Model:
         df = pd.DataFrame()
         for func in self._funcs:
             if self._funcs[func].has_one_param and self._funcs[func].param_names[0] == param:
-                # TODO: should this only extract parameters `t`?
                 df[func] = pd.Series(self._funcs[func].values)
 
         # if t is in the dataframe, move it to first position
