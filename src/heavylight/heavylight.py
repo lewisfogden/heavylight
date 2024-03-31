@@ -12,7 +12,7 @@ class _Cache:
         self.param_names = param_names
         self.has_one_param = self.param_len == 1
         self._store = dict()
-        self.__name__ = "Cache: " + func.__name__
+        self.__name__ = func.__name__
 
     def __call__(self, *arg):
         if arg in self._store:
@@ -36,6 +36,13 @@ class _Cache:
     @property
     def values(self):
         return list(self._store.values())
+    
+    @property
+    def df(self):
+        """return the cache as a pandas dataframe"""
+        df = pd.DataFrame(data=self.keys, columns=self.param_names)
+        df[self.__name__] = self.values
+        return df
 
 class Model:
     def __init__(self, *, do_run = None, proj_len:int = 0, **kwargs,):
