@@ -21,7 +21,7 @@ def solve_prot_premium(model: heavylight.Model, data: dict, basis: dict):
 
     proj_len = data["term_y"] * 12 + 1
 
-    model_inst = model(data=data, basis=basis, proj_len=proj_len, do_run=True)
+    model_inst = model(data=data, basis=basis, proj_len=proj_len)
             
     # extract npvs
     npv_claims = model_inst.pv_claims.sum()
@@ -58,7 +58,7 @@ if __name__=='__main__':
         "sex": "F"
     }
 
-    model = TermAssurance(basis=basis, data=data, proj_len=data["term_y"]*12 + 12, do_run=True)
+    model = TermAssurance(basis=basis, data=data, proj_len=data["term_y"]*12 + 12)
   
     monthly_premium = solve_prot_premium(TermAssurance, data, basis)
     print("Premium: ", monthly_premium)

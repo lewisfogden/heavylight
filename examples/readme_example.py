@@ -50,5 +50,5 @@ model = Annuity(data = policy_data,
 
 print(model.pv_expected_claim.sum())
 
-model_cashflows = model.ToDataFrame()
+model_cashflows = model.df
 print(model_cashflows)

@@ -34,10 +34,11 @@ class SimpleModel(Model):
 # %%
 
 if __name__ == "__main__":
-    model = SimpleModel(do_run = True, proj_len = 10)
+    model = SimpleModel(proj_len = 10)
     print(model.pv_cashflow.sum())
 
     print(model.v.values)
 
-    df = model.ToDataFrame()
-    print(df)
+    print(model.df)
+
+    print(model.pv_cashflow.df)
