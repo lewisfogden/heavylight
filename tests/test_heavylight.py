@@ -51,4 +51,4 @@ def test_UnitModel():
     model.func_a(5)
     model.func_a(10)
     model.func_a(7)
-    assert model.func_a.values == [5, 10, 7]  # values are ordered by insertion.
+    assert model.func_a.values == [500, 1000, 700]  # values are ordered by insertion.
