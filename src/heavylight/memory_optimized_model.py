@@ -1,9 +1,15 @@
 from inspect import getmembers, signature
-from typing import Callable, List, Union
+from typing import Callable, List, Union, Any
 from types import MethodType
 from heavylight.memory_optimized_cache import CacheGraph, _Cache, FunctionCall
 import pandas as pd
+import numpy as np
 
+def default_storage_function(x: Any):
+    if isinstance(x, (int, float, np.number)):
+        return x    
+    if isinstance(x, np.ndarray) and issubclass(x.dtype.type, np.number):
+        return np.sum(x)
 
 class LightModel:
     """Base class to subclass from for recursive actuarial models.
@@ -31,15 +37,17 @@ class LightModel:
     methods/variables starting with an underscore `_` are treated as internal.  You may break functionality if you create your own.
     """
     
-    def __init__(self):
+    def __init__(self, storage_function: Union[Callable, None] = None):
         self.cache_graph = CacheGraph()
         self._single_param_timestep_funcs: List[_Cache]  = []
         # happens after setting up attributes
         for method_name, method in getmembers(self):
             if not method_name[0].islower() or method_name.startswith("_") or not isinstance(method, MethodType):
                 continue
-            storage_function = getattr(method, "storage_function", None)
-            cached_method = self.cache_graph(storage_function)(method)
+            method_storage_function = getattr(method, "storage_function", None)
+            if method_storage_function is None:
+                method_storage_function = storage_function
+            cached_method = self.cache_graph(method_storage_function)(method)
             is_single_param_t = check_if_single_parameter_t(method)
             if is_single_param_t:
                 self._single_param_timestep_funcs.append(cached_method)
@@ -92,7 +100,7 @@ def check_if_single_parameter_t(func: Callable):
     sig = signature(func)
     return 't' in sig.parameters and len(sig.parameters) == 1
 
-def store(storage_function: Callable):
+def agg(storage_function: Callable):
     """
     Register the storage function on a function. 
     Used for storing aggregated results before cache eviction to reduce memory consumption.
@@ -101,3 +109,4 @@ def store(storage_function: Callable):
         func.storage_function = storage_function
         return func
     return decorator
+

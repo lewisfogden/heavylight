@@ -1,6 +1,6 @@
 import numpy as np
 from heavylight import LightModel
-from heavylight.memory_optimized_model import store
+from heavylight.memory_optimized_model import agg
 from typing import Union, Callable
 import pytest
 
@@ -14,18 +14,18 @@ class SimpleModel(LightModel):
     def t(self, t):
         return t
     
-    @store(np.sum)
+    @agg(np.sum)
     def num_pols_if(self, t):
         if t == 0:
             return self.initial_pols_if
         else:
             return self.num_pols_if(t - 1) - self.pols_death(t - 1) # causes exponential time complexity if uncached
     
-    @store(np.sum)
+    @agg(np.sum)
     def pols_death(self, t):
         return self.num_pols_if(t) * self.mortality_rate
 
-    @store(np.sum)
+    @agg(np.sum)
     def cashflow(self, t):
         return self.num_pols_if(t) * 100
     
@@ -36,7 +36,7 @@ class SimpleModel(LightModel):
         else:
             return self.v(t - 1) / (1 + self.forward_rate(t))
     
-    @store(lambda x: x * 2)
+    @agg(lambda x: x * 2)
     def forward_rate(self, t):
         return 0.04
     
