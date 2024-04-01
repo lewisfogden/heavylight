@@ -6,8 +6,8 @@ import pytest
 
 class SimpleModel(LightModel):
 
-    def __init__(self, initial_pols_if: np.ndarray, storage_function: Union[Callable, None] = None, mortality_rate = .01):
-        super().__init__(storage_function=storage_function)
+    def __init__(self, initial_pols_if: np.ndarray, mortality_rate = .01):
+        super().__init__()
         self.initial_pols_if = initial_pols_if
         self.mortality_rate = mortality_rate
 

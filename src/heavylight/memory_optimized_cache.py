@@ -113,8 +113,12 @@ class CacheGraph:
 
 class _Cache:
     def __init__(self, cache_graph: CacheGraph, func: Callable):
-        self._cache = cache_graph._caches[func.__name__]
+        self._cache_graph = cache_graph
         self._func = func
+
+    @property
+    def _cache(self):
+        return self._cache_graph._caches[self._func.__name__]
 
     @property
     def cache(self):
@@ -142,3 +146,4 @@ def get_pretty_key(key: ArgsHash):
         return key[0]
     else:
         return key
+    
