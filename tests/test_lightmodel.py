@@ -49,50 +49,47 @@ class SimpleModel(LightModel):
             return t
         return mult_factor * self.fib(t - 1, mult_factor) + self.fib(t - 2, mult_factor)
 
-def test_forward_rate():
+def test_method_call_and_cache_retrievals():
     sm = SimpleModel(np.linspace(.1, 1, 10))
     sm.forward_rate(0)
-    assert sm.forward_rate._cache[((0,), frozenset())] == .04
-    assert len(sm.StoredResults()) == 1
-    assert len(sm.StoredResults()['forward_rate']) == 1
-    assert sm.StoredResults()['forward_rate'][0] == .08
-
+    assert sm.forward_rate.cache[0] == .04
+    assert sm.cache_graph._caches['forward_rate'][((0,), frozenset())] == .04
+    assert sm.cache_graph.caches['forward_rate'][0] == .04
+    assert len(sm.cache_graph.caches) == 1
+    assert len(sm.forward_rate.cache) == 1
     sm.forward_rate(5)
-    assert len(sm.forward_rate._cache) == 2
-
+    assert len(sm.forward_rate.cache) == 2
+    assert len(sm.cache_graph.caches) == 1
 
 def test_timestep_functions():
     sm = SimpleModel(np.linspace(.1, 1, 10))
     timestep_functions = sm.TimestepFunctions()
     expected_functions = ['t', 'num_pols_if', 'pols_death', 'cashflow', 'v', 'pv_cashflow', 'forward_rate']
     assert set(timestep_functions) == set(expected_functions) # no duplicates
-    sm.RunModel(5)
-    # The timestep functions are the ones displayed in StoredResults()
-    assert set(sm.StoredResults().keys()) == set(["cashflow", "forward_rate", "num_pols_if", "pols_death"])
 
 @pytest.mark.timeout(4)
-def test_caching():
+def test_caching_speedups():
     sm = SimpleModel(np.linspace(.1, 1, 10))
-    assert len(sm.num_pols_if._cache) == 0
+    assert len(sm.num_pols_if.cache) == 0
     sm.RunModel(200)
-    assert len(sm.num_pols_if._cache) == 201
-    assert type(sm.StoredResults()['num_pols_if'][200]) == np.float64
+    assert len(sm.num_pols_if.cache) == 201
+    assert type(sm.AggResults()['num_pols_if'][200]) == np.float64
     # fib did not get called because it is not single parameter time function
-    assert len(sm.fib._cache) == 0
+    assert len(sm.fib.cache) == 0
     sm.fib(200, 1.1)
     # but it is still cached
-    assert len(sm.fib._cache) == 201
+    assert len(sm.fib.cache) == 201
 
 def test_reset_cache():
-    sm = SimpleModel(np.linspace(.1, 1, 10), mortality_rate=.01)
+    sm = SimpleModel(np.linspace(.1, 1, 10))
     sm.RunModel(5)
-    assert round(sm.StoredResults()['pols_death'][0], 10) == .055
+    assert round(sm.AggResults()['pols_death'][0], 10) == .055
     sm.mortality_rate = .02
     sm.RunModel(5)
-    assert round(sm.StoredResults()['pols_death'][0], 10) == .055
+    assert round(sm.AggResults()['pols_death'][0], 10) == .055
     sm.ResetCache()
     sm.RunModel(5)
-    assert round(sm.StoredResults()['pols_death'][0], 10) == .11
+    assert round(sm.AggResults()['pols_death'][0], 10) == .11
     
 class TestPrettyCacheModel(LightModel):
     def __init__(self):

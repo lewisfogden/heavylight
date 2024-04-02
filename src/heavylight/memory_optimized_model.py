@@ -5,12 +5,6 @@ from heavylight.memory_optimized_cache import CacheGraph, _Cache, FunctionCall
 import pandas as pd
 import numpy as np
 
-def default_storage_function(x: Any):
-    if isinstance(x, (int, float, np.number)):
-        return x    
-    if isinstance(x, np.ndarray) and issubclass(x.dtype.type, np.number):
-        return np.sum(x)
-
 class LightModel:
     """Base class to subclass from for recursive actuarial models.
 
@@ -22,12 +16,8 @@ class LightModel:
 
     Parameters
     ----------
-    storage_function: Callable[[int], Any], optional
-        This function is applied to the results of cached methods that have a single parameter `t`.
-        (e.g. `def pols_if(self, t):`).  The default is None, no values will be stored.
-        `storage_function=np.sum` will cause the sum of the results to be stored.
-        `storage_function=lambda x: x[0] if isinstance(x, np.ndarray) else x` will store the first element.
-        `storage_function=lambda x: x` will store the raw results.
+    agg_function: Callable[[int], Any], optional
+        This function is applied to the results of methods starting with a lowercase letter.
 
     Class level methods:
         RunModel(proj_len):
@@ -37,17 +27,17 @@ class LightModel:
     methods/variables starting with an underscore `_` are treated as internal.  You may break functionality if you create your own.
     """
     
-    def __init__(self, storage_function: Union[Callable, None] = None):
+    def __init__(self, agg_function: Union[Callable, None] = None):
         self.cache_graph = CacheGraph()
         self._single_param_timestep_funcs: List[_Cache]  = []
         # happens after setting up attributes
         for method_name, method in getmembers(self):
             if not method_name[0].islower() or method_name.startswith("_") or not isinstance(method, MethodType):
                 continue
-            method_storage_function = getattr(method, "storage_function", None)
-            if method_storage_function is None:
-                method_storage_function = storage_function
-            cached_method = self.cache_graph(method_storage_function)(method)
+            method_agg_function = getattr(method, "agg_function", None)
+            if not hasattr(method, "agg_function"):
+                method_agg_function = agg_function
+            cached_method = self.cache_graph(method_agg_function)(method)
             is_single_param_t = check_if_single_parameter_t(method)
             if is_single_param_t:
                 self._single_param_timestep_funcs.append(cached_method)
@@ -79,17 +69,17 @@ class LightModel:
         """List the cached functions that have a single parameter `t`."""
         return [cache._func.__name__ for cache in self._single_param_timestep_funcs]
     
-    def StoredResults(self):
+    def AggResults(self):
         """
         Return a dictionary of all stored results. 
         The dictionary is of the form:
         {function_name: {timestep: stored_result}}
         """
-        return self.cache_graph.stored_results
+        return self.cache_graph.caches_agg
     
     def ToDataFrame(self):
         """Return a pandas dataframe of all single parameter timestep results."""
-        df = pd.DataFrame(self.StoredResults())
+        df = pd.DataFrame(self.AggResults())
         # if t is in the dataframe, move it to first position
         if "t" in df.columns:
             df.insert(0, "t", df.pop("t"))
@@ -100,13 +90,13 @@ def check_if_single_parameter_t(func: Callable):
     sig = signature(func)
     return 't' in sig.parameters and len(sig.parameters) == 1
 
-def agg(storage_function: Callable):
+def agg(agg_function: Union[Callable, None]):
     """
     Register the storage function on a function. 
     Used for storing aggregated results before cache eviction to reduce memory consumption.
     """
     def decorator(func: Callable):
-        func.storage_function = storage_function
+        func.agg_function = agg_function
         return func
     return decorator
 

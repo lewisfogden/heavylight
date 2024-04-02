@@ -1,6 +1,5 @@
 import numpy as np
 from heavylight import LightModel
-from typing import Union, Callable
 import numpy as np
 import pytest
 
@@ -65,7 +64,7 @@ def test_memory_savings():
     assert all(misses == 1 for misses in model.cache_graph.cache_misses.values())
 
 def test_cache_misses():
-    sm = SimpleModel(np.linspace(.1, 1, 10), np.sum)
+    sm = SimpleModel(np.linspace(.1, 1, 10))
     sm.RunModel(5)
     assert len(sm.cache_graph.cache_misses.values()) > 0
     assert all(x == 1 for x in sm.cache_graph.cache_misses.values())

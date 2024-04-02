@@ -33,9 +33,9 @@ class CacheGraph:
         """
         self.stack: list[FunctionCall] = [] # what function is currently being called
         self._caches: defaultdict[str, dict[ArgsHash, Any]] = defaultdict(dict) # Results of function calls, ugly keys like ((1, 2), frozenset([('a', 1)]))
+        self._caches_agg: defaultdict[str, dict[ArgsHash, Any]] = defaultdict(dict)
         self.graph: defaultdict[FunctionCall, set[FunctionCall]] = defaultdict(set) # Call graph, graph[caller] = [callee1, callee2, ...]
         # Typically aggregated results for a function at a timestep.
-        self.stored_results: defaultdict[str, dict[int, Any]] = defaultdict(dict)
         # What is the last function that needs the result of a function? Used to help in clearing the cache
         self.last_needed_by: dict[FunctionCall, FunctionCall] = {}
         # can_clear[caller] = [callee1, callee2, ...] means that caller can clear the cache of callee1 and callee2
@@ -79,36 +79,31 @@ class CacheGraph:
                     for clearable_call in self.can_clear[function_call]:
                         del self._caches[clearable_call.func_name][(clearable_call.args, clearable_call.kwargs)]
                     self.stack.pop()
-                    self._store_result(storage_func, func, args, kwargs, result)
+                    self._store_result(storage_func, func, (args, frozen_kwargs), result)
                     return result
                 return self._caches[func.__name__][(args, frozen_kwargs)]
             decorator = _Cache(self, wrapper)
             return decorator
         return custom_cache_decorator
     
-    def _store_result(self, storage_func: Union[Callable, None], func: Callable, args: tuple, kwargs: dict, raw_result: Any):
+    def _store_result(self, storage_func: Union[Callable, None], func: Callable, args_hash: ArgsHash, raw_result: Any):
         """We might want to store an intermediate result"""
         if storage_func is None:
             return
-        # These conditions should not trigger, why we assert and not throw an exception
-        assert len(args) == 1 and isinstance(args[0], int)
-        assert len(kwargs) == 0
-        # store the processed result
-        timestep = args[0]
         stored_result = storage_func(raw_result)
-        self.stored_results[func.__name__][timestep] = stored_result
+        self._caches_agg[func.__name__][args_hash] = stored_result
 
     def size(self):
         return sum(len(cache) for cache in self._caches.values())
     
     @property
     def caches(self):
-        """
-        The CacheGraph._caches have ugly keys like `((1,), frozenset())` or `((1, 2), frozenset([('a', 1)]))`.
-        In the former case, a key of `1` is more readable, but in the latter case, we cannot clean this up.
-        Use a pretty key.
-        """
-        caches = {func_name: {get_pretty_key(k): v for k, v in cache.items()} for func_name, cache in self._caches.items()}
+        caches = defaultdict(dict, {func_name: {get_pretty_key(k): v for k, v in cache.items()} for func_name, cache in self._caches.items()})
+        return caches
+    
+    @property
+    def caches_agg(self):
+        caches = defaultdict(dict, {func_name: {get_pretty_key(k): v for k, v in cache.items()} for func_name, cache in self._caches_agg.items()})
         return caches
 
 class _Cache:
@@ -117,15 +112,16 @@ class _Cache:
         self._func = func
 
     @property
+    def cache(self):
+        return self._cache_graph.caches[self._func.__name__]
+    
+    @property
+    def cache_agg(self):
+        return self._cache_graph.caches_agg[self._func.__name__]
+    
+    @property
     def _cache(self):
         return self._cache_graph._caches[self._func.__name__]
-
-    @property
-    def cache(self):
-        """
-        The _Cache._caches have ugly keys, use a pretty key. Same as in CacheGraph.
-        """
-        return {get_pretty_key(k): v for k, v in self._cache.items()}
 
     def __setitem__(self, key, value):
         if isinstance(key, int):
