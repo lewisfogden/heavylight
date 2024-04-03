@@ -3,6 +3,7 @@ from collections import defaultdict
 from dataclasses import dataclass
 from functools import wraps
 from typing import Any, Callable, Tuple, Union, FrozenSet
+import pandas as pd
 
 @dataclass(frozen=True)
 class FunctionCall:
@@ -82,7 +83,7 @@ class CacheGraph:
                     self._store_result(storage_func, func, (args, frozen_kwargs), result)
                     return result
                 return self._caches[func.__name__][(args, frozen_kwargs)]
-            decorator = _Cache(self, wrapper)
+            decorator = CacheMethod(self, wrapper, storage_func)
             return decorator
         return custom_cache_decorator
     
@@ -97,31 +98,46 @@ class CacheGraph:
         return sum(len(cache) for cache in self._caches.values())
     
     @property
-    def caches(self):
+    def cache(self):
         caches = defaultdict(dict, {func_name: {get_pretty_key(k): v for k, v in cache.items()} for func_name, cache in self._caches.items()})
         return caches
     
     @property
-    def caches_agg(self):
+    def cache_agg(self):
         caches = defaultdict(dict, {func_name: {get_pretty_key(k): v for k, v in cache.items()} for func_name, cache in self._caches_agg.items()})
         return caches
 
-class _Cache:
-    def __init__(self, cache_graph: CacheGraph, func: Callable):
-        self._cache_graph = cache_graph
-        self._func = func
+class CacheMethod:
+    def __init__(self, cache_graph: CacheGraph, func: Callable, agg_func: Union[Callable, None] = None):
+        self.cache_graph = cache_graph
+        self.func = func
+        self.agg_func = agg_func
 
     @property
+    def df(self):
+        return pd.DataFrame({self.func.__name__: self.cache})
+
+    @property
+    def df_agg(self):
+        return pd.DataFrame({self.func.__name__: self.cache_agg})
+
+    # only run the dictionary comprehension for the particular method we want to access
+    # simply returning self.cache_graph.caches[self.func.__name__] would run the dictionary comprehension for all methods
+    @property
     def cache(self):
-        return self._cache_graph.caches[self._func.__name__]
+        return {get_pretty_key(k): v for k, v in self._cache.items()}
     
     @property
     def cache_agg(self):
-        return self._cache_graph.caches_agg[self._func.__name__]
-    
+        return {get_pretty_key(k): v for k, v in self._cache_agg.items()}
+
     @property
     def _cache(self):
-        return self._cache_graph._caches[self._func.__name__]
+        return self.cache_graph._caches[self.func.__name__]
+
+    @property
+    def _cache_agg(self):
+        return self.cache_graph._caches_agg[self.func.__name__]
 
     def __setitem__(self, key, value):
         if isinstance(key, int):
@@ -130,10 +146,10 @@ class _Cache:
             self._cache[(key, frozenset())] = value
 
     def __repr__(self):
-        return f"<Cache Function: {self._func.__name__}, Size: {len(self._cache)}>"
+        return f"<Cache Function: {self.func.__name__}, Size: {len(self._cache)}>"
     
     def __call__(self, *args: Any, **kwds: Any) -> Any:
-        return self._func(*args, **kwds)
+        return self.func(*args, **kwds)
     
 def get_pretty_key(key: ArgsHash):
     if len(key[0]) == 1 and len(key[1]) == 0:

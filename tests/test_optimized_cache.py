@@ -20,8 +20,8 @@ def test_cache_graph_storage_function():
             return n
         return fib(n - 1) + fib(n - 2)
     fib(5)
-    assert len(cg.caches_agg["fib"]) == 6
-    for k, v in cg.caches_agg["fib"].items():
+    assert len(cg.cache_agg["fib"]) == 6
+    for k, v in cg.cache_agg["fib"].items():
         assert v == fib(k)**2
 
 def test_cache_dunders():
@@ -35,13 +35,13 @@ def test_cache_dunders():
     assert repr(fib) == "<Cache Function: fib, Size: 6>"
     assert len(fib.cache) == 6
     test_key = 5
-    assert fib.cache[test_key] == cg.caches['fib'][test_key] == 5
+    assert fib.cache[test_key] == cg.cache['fib'][test_key] == 5
     assert fib.cache[5] == 5 # prettified keys
     fib[5] = 10
-    assert fib.cache[test_key] == cg.caches['fib'][test_key] == 10
+    assert fib.cache[test_key] == cg.cache['fib'][test_key] == 10
     assert fib.cache[5] == 10
     fib[(5,)] = 100
-    assert fib.cache[test_key] == cg.caches['fib'][test_key] == 100
+    assert fib.cache[test_key] == cg.cache['fib'][test_key] == 100
 
 @pytest.mark.timeout(4)
 def test_cache_graph_memory_optimization():
