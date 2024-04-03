@@ -27,6 +27,7 @@ class TestModel(LightModel):
     
     @agg(len)
     def t(self, t):
+        self.multi_param(t, t)
         return np.ones((self.size,))
     
     def multi_param(self, t, t2):
@@ -36,11 +37,17 @@ expected_cache = {'pols_death': {0: np.array([0.01, 0.01]),
     1: np.array([0.0099, 0.0099])},
     'pols_if': {0: np.array([1., 1.]), 1: np.array([0.99, 0.99])},
     'test_agg_none': {0: np.array([1., 1.]), 1: np.array([1., 1.])},
-    't': {0: np.array([1., 1.]), 1: np.array([1., 1.])}}
+    't': {0: np.array([1., 1.]), 1: np.array([1., 1.])},
+    'multi_param': {(0, 0): np.array([1., 1.]), (1, 1): np.array([1., 1.])}}
+
+expected_cache_no_multi = { k: v for k, v in expected_cache.items() if k != 'multi_param' }
 
 expected_cache_agg = {'pols_if': {0: 2.0, 1: 1.98},
     'pols_death': {0: 0.02, 1: 0.0198},
-    't': {0: 2, 1: 2}}
+    't': {0: 2, 1: 2},
+    'multi_param': {(0, 0): 2, (1, 1): 2}}
+
+expected_cache_agg_no_multi = { k: v for k, v in expected_cache_agg.items() if k != 'multi_param' }
 
 expected_cache_agg_none_aggfunc = {'t': {0: 2, 1: 2}}
 
@@ -66,8 +73,8 @@ def test_model_cache_df_after_run():
     tm.RunModel(1)
     compare_structures(tm.cache_agg, expected_cache_agg)
     compare_structures(tm.cache, expected_cache)
-    assert tm.df.sort_index(axis=1).equals(pd.DataFrame(tm.cache).sort_index(axis=1))
-    assert tm.df_agg.sort_index(axis=1).equals(pd.DataFrame(tm.cache_agg).sort_index(axis=1))
+    assert tm.df.sort_index(axis=1).equals(pd.DataFrame(expected_cache_no_multi).sort_index(axis=1))
+    assert tm.df_agg.sort_index(axis=1).equals(pd.DataFrame(expected_cache_agg_no_multi).sort_index(axis=1))
 
 def test_model_cache_df_after_run_agg_none():
     tm = TestModel(None)
@@ -76,8 +83,8 @@ def test_model_cache_df_after_run_agg_none():
     tm.RunModel(1)
     compare_structures(tm.cache_agg, expected_cache_agg_none_aggfunc)
     compare_structures(tm.cache, expected_cache)
-    assert tm.df.sort_index(axis=1).equals(pd.DataFrame(tm.cache).sort_index(axis=1))
-    assert tm.df_agg.sort_index(axis=1).equals(pd.DataFrame(tm.cache_agg).sort_index(axis=1))
+    assert tm.df.sort_index(axis=1).equals(pd.DataFrame(expected_cache_no_multi).sort_index(axis=1))
+    assert tm.df_agg.sort_index(axis=1).equals(pd.DataFrame(expected_cache_agg_none_aggfunc).sort_index(axis=1))
 
 def test_model_t_first_column():
     tm = TestModel(default_agg_function)

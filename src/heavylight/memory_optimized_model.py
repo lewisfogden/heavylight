@@ -132,7 +132,7 @@ def agg(agg_function: Union[Callable, None]):
     """
 
     def decorator(func: Callable):
-        func.agg_function = agg_function
+        func.agg_function = agg_function # type: ignore
         return func
 
     return decorator
