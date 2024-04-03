@@ -16,6 +16,8 @@ The previous install should install optional dependencies `pytest` and `pytest-c
 pytest
 # with coverage reporting
 pytest --cov=src tests/
+# get the xml
+pytest --cov=src tests/ --cov-report xml
 ```
 
 In the devcontainer we have act installed, allowing us to verify that pytest runs in the CI/CD pipeline as well.

@@ -1,13 +1,12 @@
 import numpy as np
 from heavylight import LightModel
-from typing import Union, Callable
 import numpy as np
 import pytest
 
 class SimpleModel(LightModel):
 
-    def __init__(self, initial_pols_if: np.ndarray, storage_function: Union[Callable, None] = None, mortality_rate = .01):
-        super().__init__(storage_function=storage_function)
+    def __init__(self, initial_pols_if: np.ndarray, mortality_rate = .01):
+        super().__init__()
         self.initial_pols_if = initial_pols_if
         self.mortality_rate = mortality_rate
 
@@ -40,7 +39,7 @@ class SimpleModel(LightModel):
 
 def calculate_cache_graph_size(model: LightModel):
     cg = model.cache_graph
-    return sum(val.nbytes for cache in cg.caches.values() for val in cache.values())
+    return sum(val.nbytes for cache in cg._caches.values() for val in cache.values())
 
 def run_model_calculate_max_cache(model: SimpleModel, max_time: int):
     max_cache_size = 0
@@ -65,7 +64,7 @@ def test_memory_savings():
     assert all(misses == 1 for misses in model.cache_graph.cache_misses.values())
 
 def test_cache_misses():
-    sm = SimpleModel(np.linspace(.1, 1, 10), np.sum)
+    sm = SimpleModel(np.linspace(.1, 1, 10))
     sm.RunModel(5)
     assert len(sm.cache_graph.cache_misses.values()) > 0
     assert all(x == 1 for x in sm.cache_graph.cache_misses.values())
