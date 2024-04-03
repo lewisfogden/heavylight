@@ -1,7 +1,4 @@
 """Testing the dataframe and cache presentation for LightModel class."""
-
-from inspect import getmembers
-from types import MethodType
 from heavylight import LightModel, agg
 from heavylight.memory_optimized_model import default_agg_function
 import numpy as np
