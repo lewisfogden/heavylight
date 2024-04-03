@@ -29,6 +29,9 @@ class TestModel(LightModel):
     def t(self, t):
         return np.ones((self.size,))
     
+    def multi_param(self, t, t2):
+        return np.ones((self.size,))
+    
 expected_cache = {'pols_death': {0: np.array([0.01, 0.01]),
     1: np.array([0.0099, 0.0099])},
     'pols_if': {0: np.array([1., 1.]), 1: np.array([0.99, 0.99])},
