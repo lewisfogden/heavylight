@@ -10,6 +10,7 @@ name = "heavylight"
 version = "1.0.5"
 authors = [
   { name="Lewis Fogden", email="lewisfogden@gmail.com" },
+  { name="Matthew Caseres", email="ADD@EMAIL.HERE"}
 ]
 description = "Heavylight Actuarial Modelling Framework"
 readme = "README.md"
