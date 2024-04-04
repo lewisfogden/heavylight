@@ -79,11 +79,21 @@ if __name__=='__main__':
     monthly_premium = solve_prot_premium(TermAssurance, data, basis)
     print("Premium: ", monthly_premium)
 
-    do_output = input('Save output as result excel file? (Y/n):')
-    if do_output[0].lower() == 'y':
-        df = pd.DataFrame(data)
-        df['monthly_premium'] = monthly_premium
-        df.to_excel('output/projection_result.xlsx', index=False)
-        print('Saved to output/projection_result.xlsx')
+    # do_output = input('Save output as result excel file? (Y/n):')
+    # if do_output[0].lower() == 'y':
+    #     df = pd.DataFrame(data)
+    #     df['monthly_premium'] = monthly_premium
+    #     df.to_excel('output/projection_result.xlsx', index=False)
+    #     print('Saved to output/projection_result.xlsx')
+
+    # keep list - cache t - 2 isn't cleared for theses
+    keep_list = ['t', 'net_cf', 'num_pols_if']
+    proj = TermAssurance(data=data, basis=basis, proj_len=5, cache_clear=True, keep_list=keep_list)
+
+    # net cf has all values kept
+    print(proj.net_cf.values)
+
+    # q_x doesn't so everything except the last 2 will be discarded.
+    print(proj.q_x.values)
 # %%
     

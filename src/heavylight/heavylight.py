@@ -46,7 +46,7 @@ class _Cache:
         return df
 
 class Model:
-    def __init__(self, *, do_run = None, proj_len:int = 0, **kwargs,):
+    def __init__(self, *, do_run = None, proj_len:int = 0, cache_clear = False, keep_list = None, **kwargs,):
         """Base Class to subclass for user models.
 
         When the model is instanced it is run to proj_len, if non-zero.
@@ -73,6 +73,8 @@ class Model:
         methods/variables starting with an underscore `_` are treated as internal.  You may break functionality if you create your own.
 
         """
+        if keep_list is None:
+            keep_list = []
 
         if do_run is not None:
             warnings.warn("Warning: `do_run` will be removed in a future version, use `proj_len` to control projection")
@@ -101,9 +103,12 @@ class Model:
         self._cache_funcs()
 
         if do_run and proj_len > 0:
-            self.RunModel(proj_len)
+            self.RunModel(proj_len, cache_clear, keep_list)
 
-    def RunModel(self, proj_len: int):
+    def RunModel(self, proj_len: int, cache_clear = False, keep_list=None):
+        if keep_list is None:
+            keep_list = []
+        print(keep_list)
         if self._is_run:
             # TODO: replace this with ability to run further, but warn that earlier values not recalculated?
             raise ValueError("Run has already been completed.")
@@ -117,6 +122,11 @@ class Model:
             for name, func in self._funcs.items():
                 if func.has_one_param and func.param_names[0] == 't':   # skip functions with more than one parameter
                     func(t)   #call each function in turn, starting from t==0
+                
+                    # if cache_clear
+                    if cache_clear and t > 1 and name not in keep_list:
+                        func._store[t - 2, ] = None
+
         self._is_run = True
 
         if hasattr(self, "AfterRun"):
