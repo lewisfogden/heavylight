@@ -36,8 +36,12 @@ markdown_extensions:
     - pymdownx.inlinehilite
     - pymdownx.snippets
     - pymdownx.superfences
+    - admonition
 
 repo_url: https://github.com/lewisfogden/heavylight
+
+plugins:
+    - mkdocstrings
 
 strict: true  # Don't allow warnings during the build process
 
@@ -53,4 +57,5 @@ extra_css:
 nav:
     - 'index.md'
     - 'tables.md'
-
+    - Theory: 
+        - Memory optimizations: 'memory_optimization_theory.md'
