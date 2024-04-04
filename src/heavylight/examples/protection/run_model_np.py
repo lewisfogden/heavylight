@@ -95,5 +95,8 @@ if __name__=='__main__':
 
     # q_x doesn't so everything except the last 2 will be discarded.
     print(proj.q_x.values)
+
+    # the only useful values will be in the keep_list
+    print(proj.df[keep_list])
 # %%
     
