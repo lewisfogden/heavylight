@@ -62,7 +62,6 @@ Pulling it all together, we run a projection and store it in a variable `model`
 ```python
 model = Annuity(data = policy_data,
                 basis = basis,
-                do_run = True,
                 proj_len = 40,
                 )
 ```
@@ -78,7 +77,7 @@ Output: `379.7484060121289`
 We can view results as a DataFrame:
 
 ```python
-model_cashflows = model.ToDataFrame()
+model_cashflows = model.df
 model_cashflows.head()
 ```
 
