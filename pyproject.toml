@@ -7,7 +7,7 @@ src-dir = "src"
 
 [project]
 name = "heavylight"
-version = "1.0.5"
+version = "1.0.6"
 authors = [
   { name="Lewis Fogden", email="lewisfogden@gmail.com" },
   { name="Matthew Caseres", email="matthewcaseres@outlook.com"}
@@ -50,3 +50,4 @@ classifiers = [
 [project.urls]
 "Homepage" = "https://github.com/lewisfogden/heavylight/"
 "Bug Tracker" = "https://github.com/lewisfogden/heavylight/issues"
+"Documentation" = "https://lewisfogden.github.io/heavylight/"
