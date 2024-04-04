@@ -14,10 +14,10 @@
 	},
 
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
-	// "forwardPorts": [],
+	"forwardPorts": [8000], // for mkdocs
 
 	// Use 'postCreateCommand' to pip install the editable
-	"postCreateCommand": "pip install -e .[dev]",
+	"postCreateCommand": "pip install -e .[dev,docs]",
 	"customizations": {
 		"vscode": {
 			"extensions": [
