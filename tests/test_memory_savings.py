@@ -38,7 +38,7 @@ class SimpleModel(LightModel):
         return self.cashflow(t) * self.v(t)
 
 def calculate_cache_graph_size(model: LightModel):
-    cg = model.cache_graph
+    cg = model._cache_graph
     return sum(val.nbytes for cache in cg._caches.values() for val in cache.values())
 
 def run_model_calculate_max_cache(model: SimpleModel, max_time: int):
@@ -50,9 +50,9 @@ def run_model_calculate_max_cache(model: SimpleModel, max_time: int):
     return max_cache_size
 
 def get_memory_savings_ratio(model: SimpleModel, max_time: int):
-    model.ResetCache()
+    model.Clear()
     max_cache_size = run_model_calculate_max_cache(model, max_time)
-    model.OptimizeMemoryAndReset()
+    model.ClearOptimize()
     optimized_max_cache_graph_size = run_model_calculate_max_cache(model, max_time)
     return optimized_max_cache_graph_size / max_cache_size
 
@@ -60,16 +60,16 @@ def get_memory_savings_ratio(model: SimpleModel, max_time: int):
 def test_memory_savings():
     model = SimpleModel(np.ones((1000,)))
     assert get_memory_savings_ratio(model, 100) < .01
-    assert sum(model.cache_graph.cache_misses.values()) > 0 # verify that misses are being tracked
-    assert all(misses == 1 for misses in model.cache_graph.cache_misses.values())
+    assert sum(model._cache_graph.cache_misses.values()) > 0 # verify that misses are being tracked
+    assert all(misses == 1 for misses in model._cache_graph.cache_misses.values())
 
 def test_cache_misses():
     sm = SimpleModel(np.linspace(.1, 1, 10))
     sm.RunModel(5)
-    assert len(sm.cache_graph.cache_misses.values()) > 0
-    assert all(x == 1 for x in sm.cache_graph.cache_misses.values())
-    sm.OptimizeMemoryAndReset()
-    assert len(sm.cache_graph.cache_misses.values()) == 0
+    assert len(sm._cache_graph.cache_misses.values()) > 0
+    assert all(x == 1 for x in sm._cache_graph.cache_misses.values())
+    sm.ClearOptimize()
+    assert len(sm._cache_graph.cache_misses.values()) == 0
     sm.RunModel(5)
-    assert len(sm.cache_graph.cache_misses.values()) > 0
-    assert all(x == 1 for x in sm.cache_graph.cache_misses.values())
+    assert len(sm._cache_graph.cache_misses.values()) > 0
+    assert all(x == 1 for x in sm._cache_graph.cache_misses.values())
