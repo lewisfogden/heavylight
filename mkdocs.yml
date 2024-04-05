@@ -36,13 +36,26 @@ markdown_extensions:
     - pymdownx.inlinehilite
     - pymdownx.snippets
     - pymdownx.superfences
+    - pymdownx.details
     - admonition
+    - toc:
+        permalink: "¤"  # Adds a clickable permalink to each section heading
+        toc_depth: 4
 
 repo_url: https://github.com/lewisfogden/heavylight
 
 plugins:
-    - mkdocstrings
-
+    - mkdocs-jupyter
+    - autorefs
+    - search
+    - mkdocstrings:
+        handlers:
+            python:
+                options:
+                    show_signature_annotations: true
+                    show_root_heading: true
+                    show_source: false
+                    members_order: source
 strict: true  # Don't allow warnings during the build process
 
 extra_javascript: 
@@ -57,5 +70,9 @@ extra_css:
 nav:
     - 'index.md'
     - 'tables.md'
+    - API:
+        - LightModel: api/lightmodel.md
     - Theory: 
-        - Memory optimizations: 'memory_optimization_theory.md'
+        - Recursive life insurance: theory/recursive_life_insurance.ipynb
+        - Memory optimizations: theory/memory_optimization.md
+    

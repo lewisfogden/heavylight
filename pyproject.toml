@@ -31,6 +31,7 @@ docs = [
     "mkdocs",
     "mkdocstrings[python]",
     "mkdocs-material",
+    "mkdocs-jupyter"
 ]
 
 [tool.pytest.ini_options]

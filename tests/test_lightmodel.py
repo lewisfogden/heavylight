@@ -50,17 +50,17 @@ def test_method_call_and_cache_retrievals():
     sm = SimpleModel(np.linspace(.1, 1, 10))
     sm.forward_rate(0)
     assert sm.forward_rate.cache[0] == .04
-    assert sm.cache_graph._caches['forward_rate'][((0,), frozenset())] == .04
-    assert sm.cache_graph.cache['forward_rate'][0] == .04
-    assert len(sm.cache_graph.cache) == 1
+    assert sm._cache_graph._caches['forward_rate'][((0,), frozenset())] == .04
+    assert sm._cache_graph.cache['forward_rate'][0] == .04
+    assert len(sm._cache_graph.cache) == 1
     assert len(sm.forward_rate.cache) == 1
     sm.forward_rate(5)
     assert len(sm.forward_rate.cache) == 2
-    assert len(sm.cache_graph.cache) == 1
+    assert len(sm._cache_graph.cache) == 1
 
 def test_timestep_functions():
     sm = SimpleModel(np.linspace(.1, 1, 10))
-    timestep_functions = sm.timestep_functions
+    timestep_functions = sm._timestep_functions
     expected_functions = ['t', 'num_pols_if', 'pols_death', 'cashflow', 'v', 'pv_cashflow', 'forward_rate']
     assert set(timestep_functions) == set(expected_functions) # no duplicates
 
@@ -83,7 +83,7 @@ def test_reset_cache():
     sm.mortality_rate = .02
     sm.RunModel(5)
     assert round(np.sum(sm.pols_death.cache[0]), 10) == .055
-    sm.ResetCache()
+    sm.Clear()
     sm.RunModel(5)
     assert round(np.sum(sm.pols_death.cache[0]), 10) == .11
 
@@ -99,13 +99,13 @@ class TestPrettyCacheModel(LightModel):
     
 def test_pretty_cache():
     pretty_model = TestPrettyCacheModel()
-    pretty_model.ResetCache()
+    pretty_model.Clear()
     pretty_model.RunModel(0)
-    assert pretty_model.cache_graph.cache['wowee'][(0,1)] == 1
+    assert pretty_model._cache_graph.cache['wowee'][(0,1)] == 1
     assert pretty_model.wowee.cache[(0,1)] == 1
-    assert pretty_model.cache_graph.cache['zowee'][((0,),frozenset({'x': 1}.items()))] == 2
+    assert pretty_model._cache_graph.cache['zowee'][((0,),frozenset({'x': 1}.items()))] == 2
     assert pretty_model.zowee.cache[((0,),frozenset({'x': 1}.items()))] == 2
-    assert pretty_model.cache_graph.cache['t'][0] == 3
+    assert pretty_model._cache_graph.cache['t'][0] == 3
     assert pretty_model.t.cache[0] == 3
     # can inject into the cache
     pretty_model.zowee[1] = 'hello cache'

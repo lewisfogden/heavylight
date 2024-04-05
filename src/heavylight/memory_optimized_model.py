@@ -14,29 +14,29 @@ def default_agg_function(x: Any):
 
 
 class LightModel:
-    """Base class to subclass from for recursive actuarial models.
-
-    Inheriting from this class causes functions starting with a lowercase letter to be cached.
-    A cached function will only be called once for each unique set of arguments.
-    Caching is necessary for recursive actuarial calculations to be efficient.
-
-    This means that the function will only be called once for each unique set of arguments, important for recursive actuarial models.
-
-    Parameters
-    ----------
-    agg_function: Callable[[int], Any], optional
-        This function is applied to the results of methods starting with a lowercase letter.
-
-    Class level methods:
-        RunModel(proj_len):
-        if the model has not been auto-run at initialisation, run it for projection length.
-
-    methods/variables to avoid:
-    methods/variables starting with an underscore `_` are treated as internal.  You may break functionality if you create your own.
+    """Inheriting from this class causes functions starting with a lowercase letter to be cached. 
+    The caches can be cleared to rerun the same instance with different data. 
+    This model can be memory optimized to reduce the memory requirements of the model without impacting results or performance. 
     """
 
     def __init__(self, agg_function: Union[Callable, None] = default_agg_function):
-        self.cache_graph = CacheGraph()
+        """**Arguments**
+
+        `agg_function`: Aggregation function for storing results. This function is applied to the return values of each method.
+         In memory optimized models the cache is cleared but the aggregated results are stored for reporting. 
+         If `agg_function` is not provided, the default aggregation function is used.
+         If `agg_function` is `None`, no aggregated results will be provided unless overridden at a method level with `agg`.
+
+        The implementation of the default aggregation function is as follows:
+
+        ```python
+        def default_agg_function(x: Any):
+            if isinstance(x, np.ndarray) and issubclass(x.dtype.type, np.number):
+                return np.sum(x)
+            return x
+        ```
+        """
+        self._cache_graph = CacheGraph()
         self._single_param_timestep_funcs: List[CacheMethod] = []
         self._funcs: Dict[MethodType, CacheMethod] = {}
         # happens after setting up attributes
@@ -50,7 +50,7 @@ class LightModel:
             method_agg_function = getattr(method, "agg_function", None)
             if not hasattr(method, "agg_function"): # only provide class-level agg_function if method-level is not provided
                 method_agg_function = agg_function
-            cached_method = self.cache_graph(method_agg_function)(method)
+            cached_method = self._cache_graph(method_agg_function)(method)
             self._funcs[method] = cached_method
             is_single_param_t = check_single_parameter_name(method, "t")
             if is_single_param_t:
@@ -58,53 +58,62 @@ class LightModel:
             setattr(self, method_name, cached_method)
 
     def RunModel(self, proj_len: int):
-        """
-        Run the model for a projection length.
-        All single parameter timestep functions will be run for each timestep.
+        """**Arguments**
+
+        - `proj_len`: Projection length. All single parameter timestep functions will be run for each timestep in `range(proj_len + 1)`.
         """
         for t in range(proj_len + 1):
             for func in self._single_param_timestep_funcs:
                 # We avoid recalling any functions that have already been cached, resolves issue #15 lewisfogden/heavylight
                 if (
                     not FunctionCall(func.func.__name__, (t,), frozenset())
-                    in self.cache_graph.all_calls
+                    in self._cache_graph.all_calls
                 ):
                     func(t)
 
-    def ResetCache(self):
-        """Reset the cache, useful if you want to run the model again with different parameters."""
-        self.cache_graph.reset()
+    def Clear(self):
+        """Clears the cache. If the model was memory optimized, it is no longer memory optimized."""
+        self._cache_graph.reset()
 
-    def OptimizeMemoryAndReset(self):
-        """
-        Calling this clears the cache, and causes the cache to be optimized.
-        Optimizing the cache means that only needed results are stored, and intermediate results are cleared.
-        """
-        self.cache_graph.optimize_and_reset()
+    def ClearOptimize(self):
+        """Clears the cache. The model is memory optimized after this function is called."""
+        self._cache_graph.optimize_and_reset()
 
     @property
-    def timestep_functions(self):
+    def _timestep_functions(self):
         """List the cached functions that have a single parameter `t`."""
         return [cache.func.__name__ for cache in self._single_param_timestep_funcs]
 
     @property
     def cache(self):
-        return self.cache_graph.cache
+        """
+        This is the cache of the model. It is a dictionary of dictionaries. 
+        The outer dictionary is keyed by the function name and the inner dictionary is keyed by the arguments.
+        """
+        return self._cache_graph.cache
 
     @property
     def cache_agg(self):
-        return self.cache_graph.cache_agg
+        """
+        The `cache` property with the `agg_function` applied to the results.
+        """
+        return self._cache_graph.cache_agg
 
     @property
     def df(self):
-        return self.ToDataFrame(is_agg=False)
+        """
+        A dataframe with the `cache` values of all functions that have a single parameter `t`.
+        """
+        return self._ToDataFrame(is_agg=False)
 
     @property
     def df_agg(self):
-        return self.ToDataFrame(is_agg=True)
+        """
+        The `df` property dataframe with the `agg_function` applied to the results.
+        """
+        return self._ToDataFrame(is_agg=True)
 
-    def ToDataFrame(self, param_name="t", is_agg=False):
-        """Return a pandas dataframe of all single parameter timestep results."""
+    def _ToDataFrame(self, param_name="t", is_agg=False):
         get_method_cache = _get_method_cache_factory(is_agg)
         filtered_cache = {}
         for method, cache_method in self._funcs.items():
@@ -126,8 +135,8 @@ def check_single_parameter_name(func: Callable, name: str):
 
 
 def agg(agg_function: Union[Callable, None]):
-    """
-    Register the storage function on a function.
+    """Register the storage function of a method.
+    
     Used for storing aggregated results before cache eviction to reduce memory consumption.
     """
 
