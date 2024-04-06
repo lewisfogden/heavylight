@@ -73,3 +73,30 @@ def test_cache_misses():
     sm.RunModel(5)
     assert len(sm._cache_graph.cache_misses.values()) > 0
     assert all(x == 1 for x in sm._cache_graph.cache_misses.values())
+
+def test_run_before_optimize():
+    sm = SimpleModel(
+        initial_pols_if=np.linspace(.1, 1, 10),
+        mortality_rate=.01)
+    with pytest.raises(ValueError):
+        sm.RunOptimized()
+
+def test_run_optimize():
+    sm = SimpleModel(
+        initial_pols_if=np.linspace(.1, 1, 10),
+        mortality_rate=.01)
+    sm.RunModel(5)
+    # optimized run works after normal run
+    sm.initial_pols_if = np.ones((10,))
+    sm.RunOptimized()
+    assert len(sm._cache_graph.cache_misses.values()) > 0
+    assert all(x == 1 for x in sm._cache_graph.cache_misses.values())
+    assert sm.num_pols_if.cache_agg[1] == 9.9
+    assert len(sm.num_pols_if.cache) == 0
+    # do it again
+    sm.initial_pols_if = np.ones((100,))
+    sm.RunOptimized()
+    assert len(sm._cache_graph.cache_misses.values()) > 0
+    assert all(x == 1 for x in sm._cache_graph.cache_misses.values())
+    assert round(sm.num_pols_if.cache_agg[1], 10) == 99
+    assert len(sm.num_pols_if.cache) == 0
