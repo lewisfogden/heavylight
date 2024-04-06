@@ -39,6 +39,7 @@ class LightModel:
         self._cache_graph = CacheGraph()
         self._single_param_timestep_funcs: List[CacheMethod] = []
         self._funcs: Dict[MethodType, CacheMethod] = {}
+        self._ran_to: Union[int, None] = None
         # happens after setting up attributes
         for method_name, method in getmembers(self):
             if (
@@ -62,6 +63,18 @@ class LightModel:
 
         - `proj_len`: Projection length. All single parameter timestep functions will be run for each timestep in `range(proj_len + 1)`.
         """
+        self.Clear()
+        self._ran_to = proj_len
+        self._run_model(proj_len)
+
+    def RunOptimized(self):
+        if self._ran_to is None:
+            raise ValueError("Model has not been run yet.")
+        self.ClearOptimize()
+        self._run_model(self._ran_to)
+
+    def _run_model(self, proj_len: int):
+        """shared logic between RunModel and RunOptimized"""
         for t in range(proj_len + 1):
             for func in self._single_param_timestep_funcs:
                 # We avoid recalling any functions that have already been cached, resolves issue #15 lewisfogden/heavylight
@@ -70,6 +83,7 @@ class LightModel:
                     in self._cache_graph.all_calls
                 ):
                     func(t)
+
 
     def Clear(self):
         """Clears the cache. If the model was memory optimized, it is no longer memory optimized."""
