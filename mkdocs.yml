@@ -72,6 +72,7 @@ nav:
     - 'tables.md'
     - Guides:
         - Introductory Guide: getting_started/intro_to_heavylight.ipynb
+        - Heavylight Tables: getting_started/heavylight_tables.ipynb
     - API:
         - LightModel: api/lightmodel.md
     - Theory: 
