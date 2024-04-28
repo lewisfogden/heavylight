@@ -129,9 +129,9 @@ class Table:
         """Initialise a table from a dataframe.
         
         parameters:
-          `df`: the pandas dataframe used to initialise the table
-          `rectify`: force table to be rectangular (default False)
-          `safe`: validates that integers are between bounds (default True)
+          df: the pandas dataframe used to initialise the table
+          rectify: force table to be rectangular (default False)
+          safe: validates that integers are between bounds (default True)
 
         Tables should be in long format:
          - the final column containing the values to look up
