@@ -9,6 +9,7 @@ import numpy as np
 # Each key column requires an input class which maps from the source datatype to an integer
 
 class IntegerLookup:
+    """An integer lookup - unsafe as doesn't check bounds"""
     def get(self, values):
         return values
 
@@ -25,6 +26,7 @@ class IntegerLookupSafe:
         return values
 
 class BoundIntLookup:
+    """An integer lookup that clips to the lowest and highest keys"""
     def __init__(self, lower, upper):
         self.lower = int(lower)
         self.upper = int(upper)
@@ -33,6 +35,7 @@ class BoundIntLookup:
         return np.clip(numpy_array, self.lower, self.upper)
 
 class StringLookup:
+    """A string lookup that include validation that the string match is exact"""
     def __init__(self, string_vals):
         self.string_vals = np.array(string_vals)
     
@@ -46,6 +49,7 @@ class StringLookup:
         return np.searchsorted(self.string_vals, keys)          
 
 class BandLookup:
+    """A lookup that matches on bands, using the np.searchsorted function"""
     def __init__(self, upper_bounds, labels):
         """Inputs must be sorted"""
         self.upper_bounds = np.array(upper_bounds)
@@ -196,9 +200,8 @@ class Table:
         return self._int_key_table.get_value(*int_keys)
 
     def __getitem__(self, keys):
-        # print(keys, type(keys))
         if not isinstance(keys, tuple):
-            keys = keys, #force to be a tuple
+            keys = keys,    #force to be a tuple
         return self.get(*keys)
 
     def __repr__(self):
@@ -236,11 +239,12 @@ class Table:
 
     @classmethod
     def read_excel(cls, spreadsheet_path, sheet_name):
-        """Read in a table from an excel sheet"""
+        """Read in a table from an excel sheet, for more control pass in the dataframe using `__init__`"""
         df = pd.read_excel(spreadsheet_path, sheet_name=sheet_name)
         return cls(df)
     
     @classmethod
     def read_csv(cls, csv_path):
+        """Read in a table from an csv file, for more control pass in the dataframe using `__init__`"""
         df = pd.read_csv(csv_path)
         return cls(df)

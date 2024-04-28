@@ -74,6 +74,8 @@ nav:
         - Introductory Guide: getting_started/intro_to_heavylight.ipynb
         - Heavylight Tables: getting_started/heavylight_tables.ipynb
     - API:
+        - Model: api/heavylight_Model.md
+        - Table: api/heavylight_Table.md
         - LightModel: api/lightmodel.md
     - Theory: 
         - Recursive life insurance: theory/recursive_life_insurance.ipynb

@@ -104,6 +104,12 @@ class Model:
             self.RunModel(proj_len)
 
     def RunModel(self, proj_len: int):
+        """
+        Run the model if not already run.
+
+        Parameters
+        ----------
+        - proj_len: length of projection to run"""
         if self._is_run:
             # TODO: replace this with ability to run further, but warn that earlier values not recalculated?
             raise ValueError("Run has already been completed.")
@@ -144,7 +150,12 @@ class Model:
             print(f"{name}: {func}")
         
     def ToDataFrame(self, param = 't'):
-        """return a pandas dataframe of all single parameter columns"""
+        """return a pandas dataframe of all single parameter columns
+        
+        Parameters
+        ----------
+        - param: parameter to filter on.  Default: `t`
+        """
         df = pd.DataFrame()
         for func in self._funcs:
             if self._funcs[func].has_one_param and self._funcs[func].param_names[0] == param:
@@ -157,4 +168,5 @@ class Model:
     
     @property
     def df(self):
+        """return a pandas dataframe of all single parameter columns parameterised with `t`"""
         return self.ToDataFrame()
