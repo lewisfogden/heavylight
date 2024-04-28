@@ -32,6 +32,19 @@ class BoundIntLookup:
     def get(self, numpy_array):
         return np.clip(numpy_array, self.lower, self.upper)
 
+class StringLookup:
+    def __init__(self, string_vals):
+        self.string_vals = np.array(string_vals)
+    
+    def get(self, keys):
+        if isinstance(keys, np.ndarray):
+            if not all(np.isin(keys, self.string_vals)):
+                raise KeyError("invalid string key(s) passed into table lookup.")
+        else:
+            if not keys in self.string_vals:
+                raise KeyError("invalid string key(s) passed into table lookup.")   
+        return np.searchsorted(self.string_vals, keys)          
+
 class BandLookup:
     def __init__(self, upper_bounds, labels):
         """Inputs must be sorted"""
@@ -152,7 +165,13 @@ class Table:
                 lower = df[col].min()
                 upper = df[col].max()
                 self.mappers.append(BoundIntLookup(lower=lower, upper=upper))
-            elif col_type in ["str", "band"]:
+            elif col_type == "str":
+                cols = df[col].unique()
+                string_mapper = StringLookup(cols)
+                self.mappers.append(string_mapper)
+                df_int_keys[col] = string_mapper.get(df_int_keys[col])
+
+            elif col_type in ["str_unsafe", "band"]:
                 df_col = pd.DataFrame(df[col].unique(), columns=["band_name"]).reset_index().sort_values("band_name")
 
                 # add a nan on the end so we get errors if the lookup fails

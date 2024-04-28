@@ -2,12 +2,20 @@
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
+[tool]
+rye = { dev-dependencies = [
+    "pytest>=8.1.2",
+    "pytest-cov>=5.0.0",
+    "pytest-timeout>=2.3.1",
+    "numpy>=1.26.4",
+] }
+
 [tool.hatch.build.targets.wheel]
 src-dir = "src"
 
 [project]
 name = "heavylight"
-version = "1.0.6"
+version = "1.0.7"
 authors = [
   { name="Lewis Fogden", email="lewisfogden@gmail.com" },
   { name="Matthew Caseres", email="matthewcaseres@outlook.com"}
