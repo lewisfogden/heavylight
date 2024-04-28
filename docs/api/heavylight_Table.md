@@ -1,1 +1,1 @@
-::: heavylight.Model
+::: heavylight.Table
