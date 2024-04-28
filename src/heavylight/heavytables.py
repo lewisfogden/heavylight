@@ -129,8 +129,9 @@ class Table:
         """Initialise a table from a dataframe.
         
         parameters:
-         - `rectify`: force table to be rectangular (default False)
-         - `safe`: validates that integers are between bounds (default True)
+          `df`: the pandas dataframe used to initialise the table
+          `rectify`: force table to be rectangular (default False)
+          `safe`: validates that integers are between bounds (default True)
 
         Tables should be in long format:
          - the final column containing the values to look up
@@ -138,7 +139,7 @@ class Table:
          - tables should be contingous, i.e. no gaps in integer keys.
          - tables should be complete if viewed as square matrixes (i.e. all combinations of keys are input).  If not, you should fill any gaps with np.nan or a suitable value.
 
-        The type of key is determined by the suffix on the column name:
+        The type of key is determined by the suffix on the dataframe `df` column names:
         `|int`: integers (...0, 1, 2, 3...), can start and end anywhere, but must be consecutive
         `|int_bound`: as `|int` but any values are constrained to the lowest and highest values.
         `|str': keys are interpreted as strings, e.g. 'M' and 'F'
