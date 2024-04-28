@@ -4,6 +4,7 @@
 import itertools
 import pandas as pd
 import numpy as np
+from typing import Callable, Dict, List, Union, Any
 
 # Lookup classes
 # Each key column requires an input class which maps from the source datatype to an integer
@@ -125,7 +126,7 @@ class Table:
     """
     col_types = "int", "int_bound", "str", "band", "float"
 
-    def __init__(self, df:pd.DataFrame, rectify=False, safe=True):
+    def __init__(self, df:pd.DataFrame, rectify: Union[bool, None]=False, safe: Union[bool, None]=True):
         """Initialise a table from a dataframe.
         
         parameters:
