@@ -175,7 +175,7 @@ class Table:
                 cols = df[col].unique()
                 string_mapper = StringLookup(cols)
                 self.mappers.append(string_mapper)
-                df_int_keys[col] = string_mapper.get(df_int_keys[col])
+                df_int_keys[col] = string_mapper.get(df_int_keys[col].values)
 
             elif col_type in ["str_unsafe", "band"]:
                 df_col = pd.DataFrame(df[col].unique(), columns=["band_name"]).reset_index().sort_values("band_name")
