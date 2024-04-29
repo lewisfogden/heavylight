@@ -90,3 +90,23 @@ Output:
 |  2 |   2 | 0.620078 |          478.374 |        0.071292  |        8.69772 |
 |  3 |   3 | 0.598033 |          444.27  |        0.0740356 |        8.07764 |
 |  4 |   4 | 0.575091 |          411.378 |        0.0768878 |        7.47961 |
+
+
+# Loading from Templates / Examples
+
+Heavylight includes some examples - note that this function doesn't form part of the API and is subject to change.  These are purely to give an example of how to define models and tables, and are not for direct production use.
+
+```python
+import heavylight
+
+# an example protection model
+heavylight.make_example(download_to_path='examples', example_name='protection')
+
+# install a small minimal template
+heavylight.make_example(download_to_path='examples', example_name='template')
+```
+
+Once run, these will appear in the `examples` folder relative to where the script was run.
+
+The protection model contains three different ways of running it (single policy, using numpy arrays, and using numpy arrays with memory optimisation).  The folder also contains an Excel spreadsheet which replicates the calculation.
+
