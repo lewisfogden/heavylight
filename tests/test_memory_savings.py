@@ -91,12 +91,12 @@ def test_run_optimize():
     sm.RunOptimized()
     assert len(sm._cache_graph.cache_misses.values()) > 0
     assert all(x == 1 for x in sm._cache_graph.cache_misses.values())
-    assert sm.num_pols_if.cache_agg[1] == 9.9
+    assert sm.num_pols_if.cache_agg[(1,)] == 9.9
     assert len(sm.num_pols_if.cache) == 0
     # do it again
     sm.initial_pols_if = np.ones((100,))
     sm.RunOptimized()
     assert len(sm._cache_graph.cache_misses.values()) > 0
     assert all(x == 1 for x in sm._cache_graph.cache_misses.values())
-    assert round(sm.num_pols_if.cache_agg[1], 10) == 99
+    assert round(sm.num_pols_if.cache_agg[(1,)], 10) == 99
     assert len(sm.num_pols_if.cache) == 0

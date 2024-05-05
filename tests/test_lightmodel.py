@@ -86,7 +86,4 @@ def test_reset_cache():
     assert round(np.sum(sm.pols_death.cache[(0,)]), 10) == .055
     sm.mortality_rate = .02
     sm.RunModel(5)
-    assert round(np.sum(sm.pols_death.cache[(0,)]), 10) == .055
-    sm.Clear()
-    sm.RunModel(5)
     assert round(np.sum(sm.pols_death.cache[(0,)]), 10) == .11
