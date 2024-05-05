@@ -79,7 +79,7 @@ class LightModel:
             for func in self._single_param_timestep_funcs:
                 # We avoid recalling any functions that have already been cached, resolves issue #15 lewisfogden/heavylight
                 if (
-                    not FunctionCall(func.func.__name__, (t,), frozenset())
+                    not FunctionCall(func.func.__name__, (t,))
                     in self._cache_graph.all_calls
                 ):
                     func(t)

@@ -30,23 +30,23 @@ class TestModel(LightModel):
     def multi_param(self, t, t2):
         return np.ones((self.size,))
     
-expected_cache = {'pols_death': {0: np.array([0.01, 0.01]),
-    1: np.array([0.0099, 0.0099])},
-    'pols_if': {0: np.array([1., 1.]), 1: np.array([0.99, 0.99])},
-    'test_agg_none': {0: np.array([1., 1.]), 1: np.array([1., 1.])},
-    't': {0: np.array([1., 1.]), 1: np.array([1., 1.])},
+expected_cache = {'pols_death': {(0,): np.array([0.01, 0.01]),
+    (1,): np.array([0.0099, 0.0099])},
+    'pols_if': {(0,): np.array([1., 1.]), (1,): np.array([0.99, 0.99])},
+    'test_agg_none': {(0,): np.array([1., 1.]), (1,): np.array([1., 1.])},
+    't': {(0,): np.array([1., 1.]), (1,): np.array([1., 1.])},
     'multi_param': {(0, 0): np.array([1., 1.]), (1, 1): np.array([1., 1.])}}
 
 expected_cache_no_multi = { k: v for k, v in expected_cache.items() if k != 'multi_param' }
 
-expected_cache_agg = {'pols_if': {0: 2.0, 1: 1.98},
-    'pols_death': {0: 0.02, 1: 0.0198},
-    't': {0: 2, 1: 2},
+expected_cache_agg = {'pols_if': {(0,): 2.0, (1,): 1.98},
+    'pols_death': {(0,): 0.02, (1,): 0.0198},
+    't': {(0,): 2, (1,): 2},
     'multi_param': {(0, 0): 2, (1, 1): 2}}
 
 expected_cache_agg_no_multi = { k: v for k, v in expected_cache_agg.items() if k != 'multi_param' }
 
-expected_cache_agg_none_aggfunc = {'t': {0: 2, 1: 2}}
+expected_cache_agg_none_aggfunc = {'t': {(0,): 2, (1,): 2}}
 
 def test_model_df_before_run():
     tm = TestModel(default_agg_function)

@@ -39,7 +39,7 @@ class SimpleModel(LightModel):
 
 def calculate_cache_graph_size(model: LightModel):
     cg = model._cache_graph
-    return sum(val.nbytes for cache in cg._caches.values() for val in cache.values())
+    return sum(val.nbytes for cache in cg.cache.values() for val in cache.values())
 
 def run_model_calculate_max_cache(model: SimpleModel, max_time: int):
     max_cache_size = 0

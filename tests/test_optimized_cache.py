@@ -2,14 +2,13 @@ from heavylight.memory_optimized_cache import FunctionCall, CacheGraph
 import pytest
 
 def test_function_call():
-    fc_args_kwargs = FunctionCall("func", (1, 2), frozenset([('a', 1)]))
+    fc_args_kwargs = FunctionCall("func", (1, 2))
     assert fc_args_kwargs.func_name == "func"
     assert fc_args_kwargs.args == (1, 2)
-    assert fc_args_kwargs.kwargs == frozenset([('a', 1)])
-    assert repr(fc_args_kwargs) == "func(1, 2, a=1)"
-    fc_single_arg_no_kwargs = FunctionCall("func", (1,), frozenset())
+    assert repr(fc_args_kwargs) == "func(1, 2)"
+    fc_single_arg_no_kwargs = FunctionCall("func", (1,))
     assert repr(fc_single_arg_no_kwargs) == "func(1)"
-    fc_multiple_args_no_kwargs = FunctionCall("func", (1, "hello"), frozenset())
+    fc_multiple_args_no_kwargs = FunctionCall("func", (1, "hello"))
     assert repr(fc_multiple_args_no_kwargs) == "func(1, 'hello')"
 
 def test_cache_graph_storage_function():
@@ -21,7 +20,7 @@ def test_cache_graph_storage_function():
         return fib(n - 1) + fib(n - 2)
     fib(5)
     assert len(cg.cache_agg["fib"]) == 6
-    for k, v in cg.cache_agg["fib"].items():
+    for (k, *rest), v in cg.cache_agg["fib"].items():
         assert v == fib(k)**2
 
 def test_cache_dunders():
@@ -34,12 +33,11 @@ def test_cache_dunders():
     fib(5)
     assert repr(fib) == "<Cache Function: fib, Size: 6>"
     assert len(fib.cache) == 6
-    test_key = 5
+    test_key = (5,)
     assert fib.cache[test_key] == cg.cache['fib'][test_key] == 5
-    assert fib.cache[5] == 5 # prettified keys
-    fib[5] = 10
+    fib[test_key[0]] = 10
     assert fib.cache[test_key] == cg.cache['fib'][test_key] == 10
-    assert fib.cache[5] == 10
+    assert fib.cache[test_key] == 10
     fib[(5,)] = 100
     assert fib.cache[test_key] == cg.cache['fib'][test_key] == 100
 
