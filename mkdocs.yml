@@ -81,4 +81,6 @@ nav:
         - Recursive life insurance: theory/recursive_life_insurance.ipynb
         - Vectorized models: theory/vectorized_models.ipynb
         - Memory optimizations: theory/memory_optimization.md
+    - Experiments:
+        - Rendering a model graph: experiments/term_assurance_graph.html
     
