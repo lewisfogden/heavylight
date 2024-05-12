@@ -1,4 +1,5 @@
 from heavylight import Model
+import pytest
 
 class SimpleModel(Model):
     def t(self, t):
@@ -40,6 +41,11 @@ class UnitModel(Model):
     
     def func_a(self, a):
         return 100 * a
+
+def test_no_kwargs(): # we do not support keyword arguments because multiple possible hashes for same function call
+    sm = UnitModel()
+    with pytest.raises(ValueError):
+        sm.t(t=5)
 
 def test_UnitModel():
     proj_len = 10

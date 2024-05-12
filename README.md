@@ -14,7 +14,6 @@ Model:
 
 - projection controller
 - class to subclass with your proprietary models
-- `BeforeRun` and `AfterRun` methods
 - get all values as a list with `values` attribute
 - get the sum of all values with `sum()` method
 

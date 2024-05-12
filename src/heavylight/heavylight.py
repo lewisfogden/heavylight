@@ -6,20 +6,22 @@ import pandas as pd
 class _Cache:
     """Cache provides controllable memoization for model methods"""
 
-    def __init__(self, func, param_len, param_names):
+    def __init__(self, func):
         self.func = func
-        self.param_len = param_len
-        self.param_names = param_names
+        self.param_len = len(signature(func).parameters)
+        self.param_names = tuple(signature(func).parameters)
         self.has_one_param = self.param_len == 1
         self._store = dict()
         self.__name__ = func.__name__
 
-    def __call__(self, *arg):
-        if arg in self._store:
-            return self._store[arg]
+    def __call__(self, *args, **kwargs):
+        if len(kwargs) > 0:
+            raise ValueError("Keyword arguments are not supported in heavylight")
+        if args in self._store:
+            return self._store[args]
         else:
-            result = self.func(*arg)
-            self._store[arg] = result
+            result = self.func(*args)
+            self._store[args] = result
             return result
 
     def __repr__(self):
@@ -61,13 +63,6 @@ class Model:
         Class level methods:
           RunModel(proj_len):
             Run the model to proj_len.
-
-        Special user methods:
-          BeforeRun(self):
-            If this is specified in the user model it called before the projection starts, e.g. to set up some specific variables
-
-          AfterRun(self):
-            user method, called after Run is completed, e.g. can use to calculate NPVs of variables
 
         methods/variables to avoid:
         methods/variables starting with an underscore `_` are treated as internal.  You may break functionality if you create your own.
@@ -113,9 +108,6 @@ class Model:
         if self._is_run:
             # TODO: replace this with ability to run further, but warn that earlier values not recalculated?
             raise ValueError("Run has already been completed.")
-        
-        if hasattr(self, "BeforeRun"):
-            self.BeforeRun()
 
         if not self._cached:
             raise ValueError("Functions have not been cached")  # NB: this shouldn't occur as now caching in instance
@@ -124,9 +116,6 @@ class Model:
                 if func.has_one_param and func.param_names[0] == 't':   # skip functions with more than one parameter
                     func(t)   #call each function in turn, starting from t==0
         self._is_run = True
-
-        if hasattr(self, "AfterRun"):
-            return self.AfterRun()
     
     def _cache_funcs(self):
         if self._cached:
@@ -136,9 +125,7 @@ class Model:
 
         for method_name, method in getmembers(self):
             if method_name[0] != "_" and method_name[0].islower() and isinstance(method, types.MethodType):
-                param_count = len(signature(method).parameters) # count the parameters in the function.
-                param_names = tuple(signature(method).parameters)
-                cached_method = _Cache(method, param_count, param_names)
+                cached_method = _Cache(method)
                 setattr(self, method_name, cached_method)
                 self._funcs[method_name] = cached_method
        
