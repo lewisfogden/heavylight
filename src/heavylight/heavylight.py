@@ -26,24 +26,16 @@ class _Cache:
 
     def __repr__(self):
         return f"<Cache Function: {self.func.__name__} Params: {self.param_names} Size: {len(self._store)}>"
-    
-    def sum(self):
-        """return the sum of all values in the Cache Function"""
-        return sum(self._store.values())
-    
-    @property
-    def keys(self):
-        return list(self._store.keys())
 
     @property
-    def values(self):
-        return list(self._store.values())
+    def cache(self):
+        return self._store
     
     @property
     def df(self):
         """return the cache as a pandas dataframe"""
-        df = pd.DataFrame(data=self.keys, columns=self.param_names)
-        df[self.__name__] = self.values
+        df = pd.DataFrame(data=self.cache.keys(), columns=self.param_names)
+        df[self.__name__] = self.cache.values()
         # df = df.set_index(list(self.param_names))  # TODO: decide if keys should be indexes or not.
         return df
 
@@ -146,7 +138,7 @@ class Model:
         df = pd.DataFrame()
         for func in self._funcs:
             if self._funcs[func].has_one_param and self._funcs[func].param_names[0] == param:
-                df[func] = pd.Series(self._funcs[func].values)
+                df[func] = pd.Series(self._funcs[func].cache.values())
 
         # if t is in the dataframe, move it to first position
         if "t" in df.columns:

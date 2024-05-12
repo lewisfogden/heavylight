@@ -30,7 +30,7 @@ class SimpleModel(Model):
 
 def test_heavylight():
     model = SimpleModel(do_run = True, proj_len = 10)
-    assert model.pv_cashflow.sum() > 0
+    assert sum(model.pv_cashflow.cache.values()) > 0
 
 class UnitModel(Model):
     def t(self, t):
@@ -50,14 +50,14 @@ def test_no_kwargs(): # we do not support keyword arguments because multiple pos
 def test_UnitModel():
     proj_len = 10
     model = UnitModel(proj_len = proj_len)
-    assert model.func_t.sum() == sum(100 * t for t in range(proj_len))
-    assert model.func_a.values == []
-    assert model.t.values == list(range(proj_len))
+    assert sum(model.func_t.cache.values()) == sum(100 * t for t in range(proj_len))
+    assert list(model.func_a.cache.values()) == []
+    assert list(model.t.cache.values()) == list(range(proj_len))
     model.func_a(5)
     model.func_a(10)
     model.func_a(7)
-    assert model.func_a.values == [500, 1000, 700]  # values are ordered by insertion.
-    assert [k[0] for k in model.t.keys] == model.t.values  # keys are stored as tuples, need to grab the first one.
+    assert list(model.func_a.cache.values()) == [500, 1000, 700]  # values are ordered by insertion.
+    assert [k[0] for k in model.t.cache.keys()] == list(model.t.cache.values())  # keys are stored as tuples, need to grab the first one.
 
 class DataInput(Model):
     b = 4
@@ -90,7 +90,7 @@ class RecursiveModel(Model):
         
 def test_recursive():
     model = RecursiveModel(proj_len = 7, init_delta = 3)  # note overriding init_delta, this will warn
-    assert model.time_left.values == [14, 11, 8, 5, 2, 0, 0]
+    assert list(model.time_left.cache.values()) == [14, 11, 8, 5, 2, 0, 0]
 
 class MultipleParamModel(Model):
     def t(self, t):
