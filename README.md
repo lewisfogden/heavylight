@@ -29,7 +29,7 @@ Table:
 
 ### Model Class
 
-Create your model as a subclass of `heavylight.Model``.  Each model variable is defined as a method:
+Create your model as a subclass of `heavylight.Model`.  Each model variable is defined as a method:
 
 ```python
 import heavylight
