@@ -3,6 +3,17 @@ import types
 from inspect import signature, getmembers
 import pandas as pd
 
+def _unsorted_members(class_instance):
+    """yields tuples of member name and method, in order defined in the class.
+    Superclasses are ordered before the class instance.
+    """
+    for component in reversed(type(class_instance).__mro__):
+        for method_name in vars(component):
+            method = getattr(class_instance, method_name)
+            if method_name[0] != "_" and method_name[0].islower():
+                if isinstance(method, types.MethodType):
+                    yield method_name, method
+
 class _Cache:
     """Cache provides controllable memoization for model methods"""
 
@@ -134,13 +145,12 @@ class Model:
 
         self._funcs = {}
 
-        for method_name, method in getmembers(self):
-            if method_name[0] != "_" and method_name[0].islower() and isinstance(method, types.MethodType):
-                param_count = len(signature(method).parameters) # count the parameters in the function.
-                param_names = tuple(signature(method).parameters)
-                cached_method = _Cache(method, param_count, param_names)
-                setattr(self, method_name, cached_method)
-                self._funcs[method_name] = cached_method
+        for method_name, method in _unsorted_members(self):
+            param_count = len(signature(method).parameters) # count the parameters in the function.
+            param_names = tuple(signature(method).parameters)
+            cached_method = _Cache(method, param_count, param_names)
+            setattr(self, method_name, cached_method)
+            self._funcs[method_name] = cached_method
        
         self._cached = True
     
