@@ -134,3 +134,21 @@ def test_dataframe_extracts():
     df_ones = model.ones.df
     assert df_ones.shape == (5, 2)  # 5 rows, 2 columns (t and ones)
     assert sorted(df_ones.columns) == sorted(['t', 'ones'])
+
+def test_key_ordering():
+    class BModel(Model):
+        def e_1(self):
+            return 4
+        def d_2(self):
+            return 5
+
+    class AModel(BModel):
+        def c_1(self):
+            return 1
+        def a_2(self):
+            return 2
+        def b_3(self):
+            return 3
+    
+    model = AModel()
+    list(model._funcs.keys()) == ['e_1', 'd_2', 'c_1', 'a_2', 'b_3']
