@@ -15,14 +15,21 @@ src-dir = "src"
 
 [project]
 name = "heavylight"
-version = "1.0.9"
+version = "1.0.10"
 authors = [
   { name="Lewis Fogden", email="lewisfogden@gmail.com" },
   { name="Matthew Caseres", email="matthewcaseres@outlook.com"}
 ]
+
 description = "Heavylight Actuarial Modelling Framework"
 readme = "README.md"
 requires-python = ">=3.8"
+
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
 
 dependencies = [
     "pandas>=1.2",
@@ -46,14 +53,9 @@ docs = [
 addopts = [
     "--import-mode=importlib",
 ]
+
 testpaths = [
     "tests",
-]
-
-classifiers = [
-    "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: MIT License",
-    "Operating System :: OS Independent",
 ]
 
 [project.urls]

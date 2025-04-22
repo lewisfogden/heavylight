@@ -34,6 +34,7 @@ vals = tab[ages]    # query the table and store values
 
 - `|int`: integers (...0, 1, 2, 3...), can start and end anywhere, but must be consecutive
 - `|int_bound`: as `|int` but any values are constrained to the lowest and highest values.
+- `|int_cat`: integer are interpreted as categories, e.g. frequencies of 1, 3, 6, 12 months.
 - `|str`: keys are interpreted as strings, e.g. 'M' and 'F'
 - `|band`: key is numeric and treated as the upper bound on a lookup.
 

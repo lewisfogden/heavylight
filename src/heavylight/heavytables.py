@@ -26,6 +26,20 @@ class IntegerLookupSafe:
             raise KeyError(f'values are not between table minimum ({self.lower}) and maximum ({self.upper})')
         return values
 
+class IntCatLookup:
+    """A category based integer lookup, for non-contingous integers, e.g. deferred period 1,4,13,26,52"""
+    def __init__(self, int_categories):
+        self.int_cats = np.array(int_categories)
+    
+    def get(self, numpy_array):
+        if isinstance(numpy_array, np.ndarray):
+            if not all(np.isin(numpy_array, self.int_cats)):
+                raise KeyError("invalid integer category key(s) passed into table lookup.")
+        else:
+            if not numpy_array in self.int_cats:
+                raise KeyError("invalid integer category key(s) passed into table lookup.")   
+        return np.searchsorted(self.int_cats, numpy_array)          
+
 class BoundIntLookup:
     """An integer lookup that clips to the lowest and highest keys"""
     def __init__(self, lower, upper):
@@ -143,6 +157,7 @@ class Table:
         The type of key is determined by the suffix on the dataframe `df` column names:
         `|int`: integers (...0, 1, 2, 3...), can start and end anywhere, but must be consecutive
         `|int_bound`: as `|int` but any values are constrained to the lowest and highest values.
+        `|int_cat`: as |str, categorical integers.
         `|str': keys are interpreted as strings, e.g. 'M' and 'F'
         `|band`: key is numeric and treated as the upper bound on a lookup.
         `|float`: not currently available due to floating point equality, use int or band depending on use case.
@@ -171,6 +186,12 @@ class Table:
                 lower = df[col].min()
                 upper = df[col].max()
                 self.mappers.append(BoundIntLookup(lower=lower, upper=upper))
+            elif col_type == "int_cat":
+                cols = df[col].unique()
+                intcat_mapper = IntCatLookup(cols)
+                self.mappers.append(intcat_mapper)
+                df_int_keys[col] = intcat_mapper.get(df_int_keys[col].values) # TODO: what does this do and why not above?
+            
             elif col_type == "str":
                 cols = df[col].unique()
                 string_mapper = StringLookup(cols)
@@ -222,7 +243,7 @@ class Table:
         df_unique_keys = []
         for col_name in key_cols:
             if col_name.endswith('|int') or col_name.endswith('|int_bound'):
-                # make sure all integers are covered (no gaps)
+                # make sure all integers are covered (no gaps) - excluding |int_cat as it is categorical
                 full_keys = list(range(df[col_name].min(), df[col_name].max() + 1))
             else:
                 # otherwise, grab the unique values.
