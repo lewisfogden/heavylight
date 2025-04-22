@@ -24,10 +24,13 @@ def test_int_cat():
     valid_vals = np.array([8, 8, 6, 6, 4, 4, 2, 2])
     valid_result = valid_vals * 100
     assert np.all(valid_result == table[valid_vals])
+    assert table[6] == 600
     invalid_vals = np.array([4, -5, 3, 7, 22, 8])
     inval_result = invalid_vals * 100
     with pytest.raises(KeyError, match=r"'invalid integer category key\(s\) passed into table lookup.'"):
         table[invalid_vals]
+    with pytest.raises(KeyError, match=r"'invalid integer category key\(s\) passed into table lookup.'"):
+        table[-10]
     
 
 def test_string():
