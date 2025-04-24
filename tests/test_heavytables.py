@@ -18,6 +18,21 @@ def test_rectify():
     expected_rectified_df1 = pd.DataFrame({'a': [1, 1, 2, 2], 'b': [1, 2, 1, 2], 'c': [1, np.nan, np.nan, 2]})
     assert ht.Table.rectify(df1).equals(expected_rectified_df1)
 
+def test_int_cat():
+    df = pd.DataFrame({'key|int_cat': [2, 4, 6, 8], 'val|int': [200, 400, 600, 800]})
+    table = ht.Table(df)
+    valid_vals = np.array([8, 8, 6, 6, 4, 4, 2, 2])
+    valid_result = valid_vals * 100
+    assert np.all(valid_result == table[valid_vals])
+    assert table[6] == 600
+    invalid_vals = np.array([4, -5, 3, 7, 22, 8])
+    inval_result = invalid_vals * 100
+    with pytest.raises(KeyError, match=r"'invalid integer category key\(s\) passed into table lookup.'"):
+        table[invalid_vals]
+    with pytest.raises(KeyError, match=r"'invalid integer category key\(s\) passed into table lookup.'"):
+        table[-10]
+    
+
 def test_string():
     df = pd.DataFrame({'key|str': ['A', 'B', 'C'], 'val|str': ['a', 'b', 'c']})
     table = ht.Table(df)

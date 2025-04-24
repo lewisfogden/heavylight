@@ -1,4 +1,5 @@
 from heavylight import Model
+import pytest
 
 class SimpleModel(Model):
     def t(self, t):
@@ -27,6 +28,7 @@ class SimpleModel(Model):
         """present value of the cashflow occuring at time t"""
         return self.cashflow(t) * self.v(t)
 
+@pytest.mark.filterwarnings("ignore:Warning")
 def test_heavylight():
     model = SimpleModel(do_run = True, proj_len = 10)
     assert model.pv_cashflow.sum() > 0
