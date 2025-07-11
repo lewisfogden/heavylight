@@ -15,7 +15,7 @@ src-dir = "src"
 
 [project]
 name = "heavylight"
-version = "1.0.10"
+version = "1.0.10a0"
 authors = [
   { name="Lewis Fogden", email="lewisfogden@gmail.com" },
   { name="Matthew Caseres", email="matthewcaseres@outlook.com"}
@@ -62,3 +62,8 @@ testpaths = [
 "Homepage" = "https://github.com/lewisfogden/heavylight/"
 "Bug Tracker" = "https://github.com/lewisfogden/heavylight/issues"
 "Documentation" = "https://lewisfogden.github.io/heavylight/"
+
+[dependency-groups]
+dev = [
+    "pytest>=7.4.3",
+]
