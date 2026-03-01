@@ -83,8 +83,8 @@ class BandLookup:
     @classmethod
     def from_dataframe(cls, df:pd.DataFrame, band_column_name, integer_column_name):
         df_copy = df.sort_values(band_column_name)
-        band_arr = df_copy[band_column_name].values
-        band_labels = df_copy[integer_column_name].values
+        band_arr = df_copy[band_column_name].to_numpy()
+        band_labels = df_copy[integer_column_name].to_numpy()
         return cls(band_arr, band_labels)
     
     @classmethod
@@ -116,7 +116,7 @@ class IntKeyTable:
             self.scalars.append(total_scalar)
             total_scalar *= col
 
-        self.values = self.df[self.value_col].values
+        self.values = self.df[self.value_col].to_numpy()
 
         expected_rows = np.prod(self.ranges)
         if expected_rows != len(self.values):
@@ -190,13 +190,13 @@ class Table:
                 cols = df[col].unique()
                 intcat_mapper = IntCatLookup(cols)
                 self.mappers.append(intcat_mapper)
-                df_int_keys[col] = intcat_mapper.get(df_int_keys[col].values) # TODO: what does this do and why not above?
+                df_int_keys[col] = intcat_mapper.get(df_int_keys[col].to_numpy())
             
             elif col_type == "str":
                 cols = df[col].unique()
                 string_mapper = StringLookup(cols)
                 self.mappers.append(string_mapper)
-                df_int_keys[col] = string_mapper.get(df_int_keys[col].values)
+                df_int_keys[col] = string_mapper.get(df_int_keys[col].to_numpy())
 
             elif col_type in ["str_unsafe", "band"]:
                 df_col = pd.DataFrame(df[col].unique(), columns=["band_name"]).reset_index().sort_values("band_name")
