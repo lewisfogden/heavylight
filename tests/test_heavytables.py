@@ -43,3 +43,7 @@ def test_string():
     assert list(table[np.array(['A', 'C'])]) == ['a', 'c']
     with pytest.raises(KeyError, match=r"'invalid string key\(s\) passed into table lookup.'"):
         table[np.array(['A', 'AB'])]
+
+def test_read_csv():
+    table = ht.Table.read_csv(r'tests/test_table.csv')
+    assert table['a', 1, 1] == 700

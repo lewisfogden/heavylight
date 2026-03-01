@@ -23,7 +23,7 @@ authors = [
 
 description = "Heavylight Actuarial Modelling Framework"
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.11"
 
 classifiers = [
     "Programming Language :: Python :: 3",
@@ -32,7 +32,7 @@ classifiers = [
 ]
 
 dependencies = [
-    "pandas>=1.2",
+    "pandas>=2.1",
 ]
 
 [project.optional-dependencies]
@@ -53,6 +53,10 @@ docs = [
 addopts = [
     "--import-mode=importlib",
 ]
+markers = [
+    "timeout: this test may timeout",
+]
+
 
 testpaths = [
     "tests",
@@ -62,3 +66,8 @@ testpaths = [
 "Homepage" = "https://github.com/lewisfogden/heavylight/"
 "Bug Tracker" = "https://github.com/lewisfogden/heavylight/issues"
 "Documentation" = "https://lewisfogden.github.io/heavylight/"
+
+[dependency-groups]
+dev = [
+    "pytest>=7.4.3",
+]
