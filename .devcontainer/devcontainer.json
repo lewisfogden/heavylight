@@ -5,7 +5,7 @@
 	// Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
 	"image": "mcr.microsoft.com/devcontainers/python:1-3.8-bookworm",
 	"features": {
-		"ghcr.io/devcontainers/features/docker-in-docker:2": {},
+		"ghcr.io/devcontainers/features/docker-in-docker:3": {},
 		"ghcr.io/dhoeric/features/act:1": {},
 		"ghcr.io/hspaans/devcontainer-features/pytest:2": {},
 		"ghcr.io/meaningful-ooo/devcontainer-features/fish:2": {},
